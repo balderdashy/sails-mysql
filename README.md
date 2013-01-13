@@ -1,7 +1,6 @@
-# DirtyAdapter
+# MySQLAdapter
 
-Waterline adapter for the great felixge's Dirty database.  (https://github.com/felixge/node-dirty)
-Dirty is an in-memory and disk-persisted JSON store which works great as a bundled, starter database (with the strict caveat that it is for non-production use only).
+Waterline adapter for MySQL.
 
 ## About Waterline
 Waterline is a new kind of storage and retrieval engine.  It provides a uniform API for accessing stuff from different kinds of databases, protocols, and 3rd party APIs.  That means you write the same code to get users, whether they live in mySQL, LDAP, MongoDB, or Facebook.

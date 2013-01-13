@@ -1,0 +1,23 @@
+{
+  "name": "waterline-mysql",
+  "version": "0.0.0",
+  "description": "MySQL adapter for Waterline ORM",
+  "main": "MySQLAdapter.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/balderdashy/waterline-mysql.git"
+  },
+  "keywords": [
+    "mysql",
+    "orm",
+    "waterline",
+    "sails"
+  ],
+  "author": "Mike McNeil",
+  "license": "MIT",
+  "gitHead": "05d2633b77843251472e819bd55c41f5d6626009",
+  "readmeFilename": "README.md"
+}

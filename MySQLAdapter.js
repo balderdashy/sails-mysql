@@ -1,37 +1,17 @@
 /*---------------------------------------------------------------
-	:: DirtyAdapter
+	:: waterline-mysql
 	-> adapter
-
-	This disk+memory adapter is for development only!
-	Learn more: https://github.com/felixge/node-dirty
 ---------------------------------------------------------------*/
-
-// Poor man's auto-increment
-//	* NOTE: In production databases, auto-increment capabilities 
-//	* are built-in.  However, that is not the case with dirty.
-//	* This in-memory auto-increment will not scale to a multi-instance / cluster setup.
-var statusDb = {};
-
 
 // Dependencies
 var async = require('async');
 var _ = require('underscore');
 _.str = require('underscore.string');
-var dirty = require('dirty');
-var parley = require('parley');
-var uuid = require('node-uuid');
-
+var mysql = require('mysql');
 
 var adapter = {
 
 	config: {
-
-		// If inMemory is true, all data will be destroyed when the server stops
-		// otherwise, it will be written to disk
-		inMemory: true,
-
-		// File path for disk file output (when NOT in inMemory mode)
-		dbFilePath: './.waterline/dirty.db',
 
 		// String to precede key name for schema defininitions
 		schemaPrefix: 'waterline_schema_',

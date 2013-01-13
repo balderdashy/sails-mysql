@@ -9,456 +9,439 @@ var _ = require('underscore');
 _.str = require('underscore.string');
 var mysql = require('mysql');
 
-var adapter = {
+function MySQLAdapter() {
+	var adapter = {
 
-	config: {
+		config: {
+			host: 'localhost',
+			user: 'waterline',
+			password: 'abc123',
+			database: 'waterline'
+		},
 
-		// String to precede key name for schema defininitions
-		schemaPrefix: 'waterline_schema_',
-
-		// String to precede key name for actual data in collection
-		dataPrefix: 'waterline_data_'
-	},
-
-	// Initialize the underlying data model
-	initialize: function(cb) {
-		var my = this;
-
-		if(! this.config.inMemory) {
-
-			// Check that dbFilePath file exists and build tree as necessary
-			require('fs-extra').touch(this.config.dbFilePath, function(err) {
-				if(err) return cb(err);
-				my.db = new(dirty.Dirty)(my.config.dbFilePath);
-
-				afterwards();
-			});
-		} else {
-			this.db = new(dirty.Dirty)();
-			afterwards();
-		}
-
-		function afterwards() {
-
-			// Make logger easily accessible
-			my.log = my.config.log;
-
-			// Trigger callback with no error
-			my.db.on('load', function() {
-				cb();
-			});
-		}
-	},
-
-	// Logic to handle the (re)instantiation of collections
-	initializeCollection: function(collectionName, cb) {
-		var self = this;
-
-		// Grab current auto-increment value from database and populate it in-memory
-		var schema = this.db.get(this.config.schemaPrefix + collectionName);
-		statusDb[collectionName] = (schema && schema.autoIncrement) ? schema : {autoIncrement: 1};
-
-		self.getAutoIncrementAttribute(collectionName, function (err,aiAttr) {
-			// Check that the resurrected auto-increment value is valid
-			self.find(collectionName, {
-				where: {
-					id: statusDb[collectionName].autoIncrement
-				}
-			}, function (err, models) {
-				if (err) return cb(err);
-
-				// If that model already exists, warn the user and generate the next-best possible auto-increment key
-				if (models && models.length) {
-
-					// Find max
-					self.find(collectionName, {}, function (err,models) {
-						var autoIncrement = _.max(models,function (model){
-							return model[aiAttr];
-						});
-						autoIncrement = autoIncrement && autoIncrement[aiAttr] || 0;
-						autoIncrement++;
-
-						self.log.warn("On-disk auto-increment ID corrupt, using: "+autoIncrement+" on attribute:",aiAttr);
-						statusDb[collectionName].autoIncrement = autoIncrement;
-						cb();
-					});
-				}
-				else cb();
-			});
-		});
-	},
-
-	// find this collection's auto-increment field and return its name
-	getAutoIncrementAttribute: function (collectionName, cb) {
-		this.describe(collectionName, function (err,attributes) {
-			var attrName, done=false;
-			_.each(attributes, function(attribute, aname) {
-				if(!done && _.isObject(attribute) && attribute.autoIncrement) {
-					attrName = aname;
-					done = true;
-				}
-			});
-
-			cb(null, attrName);
-		});
-	},
-
-	// Logic to handle flushing collection data to disk before the adapter shuts down
-	teardownCollection: function(collectionName, cb) {
-		var my = this;
-		
-		// Always go ahead and write the new auto-increment to disc, even though it will be wrong sometimes
-		// (this is done so that the auto-increment counter can be "resurrected" when the adapter is restarted from disk)
-		var schema = _.extend(this.db.get(this.config.schemaPrefix + collectionName),{
-			autoIncrement: statusDb[collectionName].autoIncrement
-		});
-		this.log.info("Waterline saving "+collectionName+" collection...");
-		this.db.set(this.config.schemaPrefix + collectionName, schema, function (err) {
-			my.db = null;
-			cb && cb(err);
-		});
-	},
-
-
-	// Fetch the schema for a collection
-	// (contains attributes and autoIncrement value)
-	describe: function(collectionName, cb) {	
-		this.log.verbose(" DESCRIBING :: " + collectionName);
-		var schema = this.db.get(this.config.schemaPrefix + collectionName);
-		var attributes = schema && schema.attributes;
-		return cb(null, attributes);
-	},
-
-	// Create a new collection
-	define: function(collectionName, attributes, cb) {
-		this.log.verbose(" DEFINING " + collectionName, {
-			as: schema
-		});
-		var self = this;
-
-		var schema = {
-			attributes: _.clone(attributes),
-			autoIncrement: 1
-		};
-
-		// Write schema and status objects
-		return self.db.set(this.config.schemaPrefix + collectionName, schema, function(err) {
-			if(err) return cb(err);
-
-			// Set in-memory schema for this collection
-			statusDb[collectionName] = schema;
+		// Initialize the underlying data model
+		initialize: function(cb) {
+			var self = this;
+			this.pool = mysql.createPool(adapter.config);
 			cb();
-		});
-	},
+		},
 
-	// Drop an existing collection
-	drop: function(collectionName, cb) {
-		var self = this;
-		self.log.verbose(" DROPPING " + collectionName);
-		return self.db.rm(self.config.dataPrefix + collectionName, function(err) {
-			if(err) return cb("Could not drop collection!");
-			return self.db.rm(self.config.schemaPrefix + collectionName, cb);
-		});
-	},
+		teardown: function (cb) {
+			var my = this;
 
-	// No alter necessary-- use the default in waterline core
+			// TODO: Drain pool
+			
+			cb && cb();
+		},
 
 
-
-	// Create one or more new models in the collection
-	create: function(collectionName, values, cb) {
-		this.log.verbose(" CREATING :: " + collectionName, values);
-		values = _.clone(values) || {};
-		var dataKey = this.config.dataPrefix + collectionName;
-		var data = this.db.get(dataKey);
-		var self = this;
-
-
-		// Lookup schema & status so we know all of the attribute names and the current auto-increment value
-		var schema = this.db.get(this.config.schemaPrefix + collectionName);
-
-		// Auto increment fields that need it
-		doAutoIncrement(collectionName, schema.attributes, values, this, function (err, values) {
-			if (err) return cb(err);
-
-			self.describe(collectionName, function(err, attributes) {
-				if(err) return cb(err);
-
-				// Create new model
-				// (if data collection doesn't exist yet, create it)
-				data = data || [];
-				data.push(values);
-
-				// Replace data collection and go back
-				self.db.set(dataKey, data, function(err) {
-					return cb(err, values);
+		// Fetch the schema for a collection
+		// (contains attributes and autoIncrement value)
+		describe: function (collectionName, cb) {
+			pool(function __DESCRIBE__ (connection, cb) {
+				collectionName = mysql.escapeId(collectionName);
+				var query = 'DESCRIBE '+collectionName;
+				connection.query(query, function __DESCRIBE__ (err, result) {
+					if (err) {
+						if (err.code === 'ER_NO_SUCH_TABLE') {
+							result = null;
+						}
+						else return cb(err);
+					}
+					cb(null, result);
 				});
+			}, cb);
+		},
+
+		// Create a new collection
+		define: function(collectionName, attributes, cb) {
+			pool(function __DEFINE__ (connection, cb) {
+
+				// Escape table name
+				collectionName = mysql.escapeId(collectionName);
+				
+				// Iterate through each attribute, building a query string
+				var $schema = sql.schema(attributes);
+
+				// Build query
+				var query = 
+					'CREATE TABLE ' + collectionName + ' (' +
+						$schema + 
+					')';
+
+				// Run query
+				connection.query(query, function __DEFINE__(err, result) {
+					if (err) return cb(err);
+					cb(null, result);
+				});
+			}, cb);
+		},
+
+		// Drop an existing collection
+		drop: function(collectionName, cb) {
+			pool(function __DROP__ (connection, cb) {
+				
+				// Escape table name
+				collectionName = mysql.escapeId(collectionName);
+				
+				// Build query
+				var query = 'DROP TABLE ' + collectionName;
+
+				// Run query
+				connection.query(query, function __DROP__(err,result) {
+					if (err) {
+						if (err.code === 'ER_BAD_TABLE_ERROR') {
+							result = null;
+						}
+						else return cb(err);
+					}
+					cb(null, result);
+				});
+			}, cb);
+		},
+
+		// No custom alter necessary-- alter can be performed by using the other methods
+		// you probably want to use the default in waterline core since this can get complex
+		// (that is unless you want some enhanced functionality-- then please be our guest!)
+
+
+		// Create one or more new models in the collection
+		create: function(collectionName, values, cb) {
+			pool(function (connection, cb) {
+				
+				// Escape table name
+				collectionName = mysql.escapeId(collectionName);
+				
+				// Build query
+				var query = 
+					'INSERT INTO ' + collectionName + ' ' +
+					'(' +
+						// $attributes
+					')' +
+					' VALUES (' +
+						// $values
+					')';
+
+				// Run query
+				connection.query(query, function (err, result) {
+					cb(err, result);
+				});
+			}, cb);
+		},
+
+		// Find one or more models from the collection
+		// using where, limit, skip, and order
+		// In where: handle `or`, `and`, and `like` queries
+		find: function(collectionName, options, cb) {
+			pool(function (connection, cb) {
+				
+				// Escape table name
+				collectionName = mysql.escapeId(collectionName);
+				
+				// Build query
+				var query = '';
+
+				// Run query
+				connection.query(query, function (err, result) {
+					cb(err, result);
+				});
+			}, cb);
+		},
+
+		// Update one or more models in the collection
+		update: function(collectionName, options, values, cb) {
+			pool(function (connection, cb) {
+				
+				// Escape table name
+				collectionName = mysql.escapeId(collectionName);
+				
+				// Build query
+				var query = '';
+
+				// Run query
+				connection.query(query, function (err, result) {
+					cb(err, result);
+				});
+			}, cb);
+		},
+
+		// Delete one or more models from the collection
+		destroy: function(collectionName, options, cb) {
+			pool(function (connection, cb) {
+				
+				// Escape table name
+				collectionName = mysql.escapeId(collectionName);
+				
+				// Build query
+				var query = '';
+
+				// Run query
+				connection.query(query, function (err, result) {
+					cb(err, result);
+				});
+			}, cb);
+		},
+
+
+		// Identity is here to facilitate unit testing
+		// (this is optional and normally automatically populated based on filename)
+		identity: 'waterline-mysql'
+	};
+
+
+
+	//////////////                 //////////////////////////////////////////
+	////////////// Private Methods //////////////////////////////////////////
+	//////////////                 //////////////////////////////////////////
+
+	var sql = {
+		// Create a schema csv for a DDL query
+		schema: function (attributes) {
+			return sql.build(attributes, sql._schema);
+		},
+		// Create an attribute csv for a DQL query
+		attributes: function (attributes) {
+			return sql.build(attributes, sql._attributes);
+		},
+		
+		// Create a value csv for a DQL query
+		values: function (value) {
+			return sql.build(values, sql._values);
+		},
+
+		// TODO
+		_schema: function (attribute, attrName) {
+			attrName = mysql.escapeId(attrName);
+			var type = sqlTypeCast(attribute.type);
+			return attrName + ' ' + 
+				type + ' ' + 
+				( attribute.autoIncrement ? 'NOT NULL AUTO_INCREMENT, ' +
+					'PRIMARY KEY('+ attrName +')' : '');
+		},
+
+		// TODO
+		_attributes: function (attributes) {
+			return '';
+		},
+
+		
+		// TODO
+		_values: function (values) {
+			return '';
+		},
+
+		// Put together the CSV aggregation
+		build: function (collection, fn) {
+			var $sql = '';
+			_.each(collection, function (value, key) {
+				$sql += fn(value, key);
+
+				// (always append comma)
+				$sql += ', ';
+			});
+
+			// (then remove final one)
+			return _.str.rtrim($sql, ', ');
+		}
+	};
+
+
+	// Wrap a function in the logic necessary to provision a connection from the pool
+	function pool (logic, cb) {
+		adapter.pool.getConnection(function (err, connection) {
+			if (err) return cb(err);
+			logic(connection, function (err, result) {
+				connection.end();
+				cb(err,result);
 			});
 		});
-	},
+	}
 
-	// Find one or more models from the collection
-	// using where, limit, skip, and order
-	// In where: handle `or`, `and`, and `like` queries
-	find: function(collectionName, options, cb) {
-		var dataKey = this.config.dataPrefix + collectionName;
-		var data = this.db.get(dataKey) || [];
+	// Cast waterline types into SQL data types
+	function sqlTypeCast (type) {
+		type = type.toLowerCase();
 
-		// Get indices from original data which match, in order
-		var matchIndices = getMatchIndices(data,options);
-
-		var resultSet = [];
-		_.each(matchIndices,function (matchIndex) {
-			resultSet.push(data[matchIndex]);
-		});
-		
-		cb(null, resultSet);
-	},
-
-	// Update one or more models in the collection
-	update: function(collectionName, options, values, cb) {
-		this.log.verbose(" UPDATING :: " + collectionName, {
-			options: options,
-			values: values
-		});
-		var my = this;
-
-		
-		var dataKey = this.config.dataPrefix + collectionName;
-		var data = this.db.get(dataKey);
-
-		// Query result set using options
-		var matchIndices = getMatchIndices(data,options);
-
-		// Update model(s)
-		_.each(matchIndices, function(index) {
-			data[index] = _.extend(data[index], values);
-		});
-
-		// Get result set for response
-		var resultSet = [];
-		_.each(matchIndices,function (matchIndex) {
-			resultSet.push(data[matchIndex]);
-		});
-
-		// Replace data collection and go back
-		this.db.set(dataKey, data, function(err) {
-			cb(err, resultSet);
-		});
-	},
-
-	// Delete one or more models from the collection
-	destroy: function(collectionName, options, cb) {
-		this.log.verbose(" DESTROYING :: " + collectionName, options);
-
-		var dataKey = this.config.dataPrefix + collectionName;
-		var data = this.db.get(dataKey);
-
-		// Query result set using options
-		var matchIndices = getMatchIndices(data,options);
-
-		
-		// Remove model(s)
-		// Get result set of only the models that remain
-		data = _.reject(data, function(model,index) {
-			return _.contains(matchIndices, index);
-		});
-
-		// Replace data collection and respond with what's left
-		this.db.set(dataKey, data, function(err) {
-			cb(err);
-		});
-	},
-
-
-
-	// Identity is here to facilitate unit testing
-	// (this is optional and normally automatically populated based on filename)
-	identity: 'dirty'
-};
-
-
-
-//////////////                 //////////////////////////////////////////
-////////////// Private Methods //////////////////////////////////////////
-//////////////                 //////////////////////////////////////////
-
-// Look for auto-increment field, increment counter accordingly, and return refined value set
-function doAutoIncrement (collectionName, attributes, values, ctx, cb) {
-
-	// Determine the attribute names which will be included in the created object
-	var attrNames = _.keys(_.extend({}, attributes, values));
-
-	// increment AI fields in values set
-	_.each(attrNames, function(attrName) {
-		if(_.isObject(attributes[attrName]) && attributes[attrName].autoIncrement) {
-			values[attrName] = statusDb[collectionName].autoIncrement;
-
-			// Then, increment the auto-increment counter for this collection
-			statusDb[collectionName].autoIncrement++;
+		switch (type) {
+			case 'string'	: return 'TEXT';
+			
+			case 'int':
+			case 'integer'	: return 'INT';
+			
+			case 'date'		: return 'DATE';
 		}
-	});
-
-	// Return complete values set w/ auto-incremented data
-	return cb(null,values);
-}
+	}
 
 
-// Run criteria query against data aset
-function applyFilter(data, criteria) {
-	if(!data) return data;
-	else {
-		return _.filter(data, function(model) {
-			return matchSet(model, criteria);
+
+
+
+
+
+
+
+
+
+
+	// Run criteria query against data aset
+	function applyFilter(data, criteria) {
+		if(!data) return data;
+		else {
+			return _.filter(data, function(model) {
+				return matchSet(model, criteria);
+			});
+		}
+	}
+
+	function applySort(data, sort) {
+		if (!sort || !data) return data;
+		else {
+			var sortedData = _.clone(data);
+
+			// Sort through each sort attribute criteria
+			_.each(sort,function (direction, attrName) {
+
+				var comparator;
+
+				// Basic MongoDB-style numeric sort direction
+				if (direction === 1 || direction === -1) comparator = function (model) {return model[attrName];};
+				else comparator = comparator;
+
+				// Actually sort data
+				sortedData = _.sortBy(sortedData,comparator);
+
+
+				// Reverse it if necessary (if -1 direction specified)
+				if (direction === -1) sortedData.reverse();
+			});
+			return sortedData;
+		}
+	}
+	// Ignore the first *skip* models
+	function applySkip(data, skip) {
+		if (!skip || !data) return data;
+		else {
+			return _.rest(data,skip);
+		}
+	}
+
+	function applyLimit(data, limit) {
+		if (!limit || !data) return data;
+		else {
+			return _.first(data,limit);
+		}
+	}
+
+	// Find models in data which satisfy the options criteria, 
+	// then return their indices in order
+	function getMatchIndices(data, options) {
+		// Remember original indices
+		var origIndexKey = '_waterline_dirty_origindex';
+		var matches = _.clone(data);
+		_.each(matches,function (model, index) {
+			// Determine origIndex key
+			// while (model[origIndexKey]) { origIndexKey = '_' + origIndexKey; }
+			model[origIndexKey] = index;
+		});
+
+		// Query and return result set using criteria
+		matches = applyFilter(matches, options.where);
+		matches = applySort(matches, options.sort);
+		matches = applySkip(matches, options.skip);
+		matches = applyLimit(matches, options.limit);
+		var matchIndices = _.pluck(matches,origIndexKey);
+
+		// Remove original index key which is keeping track of the index in the unsorted data
+		_.each(data, function (datum) {
+			delete datum[origIndexKey];
+		});
+		return matchIndices;
+	}
+
+
+	// Match a model against each criterion in a criteria query
+
+	function matchSet(model, criteria) {
+
+		// Null or {} WHERE query always matches everything
+		if(!criteria || _.isEqual(criteria,{})) return true;
+
+		// By default, treat entries as AND
+		return _.all(criteria,function(criterion,key) {
+			return matchItem(model, key, criterion);
 		});
 	}
-}
-
-function applySort(data, sort) {
-	if (!sort || !data) return data;
-	else {
-		var sortedData = _.clone(data);
-
-		// Sort through each sort attribute criteria
-		_.each(sort,function (direction, attrName) {
-
-			var comparator;
-
-			// Basic MongoDB-style numeric sort direction
-			if (direction === 1 || direction === -1) comparator = function (model) {return model[attrName];};
-			else comparator = comparator;
-
-			// Actually sort data
-			sortedData = _.sortBy(sortedData,comparator);
 
 
-			// Reverse it if necessary (if -1 direction specified)
-			if (direction === -1) sortedData.reverse();
+	function matchOr(model, disjuncts) {
+		var outcome = false;
+		_.each(disjuncts, function(criteria) {
+			if(matchSet(model, criteria)) outcome = true;
 		});
-		return sortedData;
+		return outcome;
 	}
-}
-// Ignore the first *skip* models
-function applySkip(data, skip) {
-	if (!skip || !data) return data;
-	else {
-		return _.rest(data,skip);
+
+	function matchAnd(model, conjuncts) {
+		var outcome = true;
+		_.each(conjuncts, function(criteria) {
+			if(!matchSet(model, criteria)) outcome = false;
+		});
+		return outcome;
 	}
-}
 
-function applyLimit(data, limit) {
-	if (!limit || !data) return data;
-	else {
-		return _.first(data,limit);
+	function matchLike(model, criteria) {
+		for(var key in criteria) {
+
+			// Check that criterion attribute and is at least similar to the model's value for that attr
+			if(!model[key] || !_.str.include(model[key],criteria[key])) {
+				return false;
+			}
+		}
+		return true;
 	}
-}
 
-// Find models in data which satisfy the options criteria, 
-// then return their indices in order
-function getMatchIndices(data, options) {
-	// Remember original indices
-	var origIndexKey = '_waterline_dirty_origindex';
-	var matches = _.clone(data);
-	_.each(matches,function (model, index) {
-		// Determine origIndex key
-		// while (model[origIndexKey]) { origIndexKey = '_' + origIndexKey; }
-		model[origIndexKey] = index;
-	});
+	function matchNot(model, criteria) {
+		return !matchSet(model, criteria);
+	}
 
-	// Query and return result set using criteria
-	matches = applyFilter(matches, options.where);
-	matches = applySort(matches, options.sort);
-	matches = applySkip(matches, options.skip);
-	matches = applyLimit(matches, options.limit);
-	var matchIndices = _.pluck(matches,origIndexKey);
+	function matchItem(model, key, criterion) {
 
-	// Remove original index key which is keeping track of the index in the unsorted data
-	_.each(data, function (datum) {
-		delete datum[origIndexKey];
-	});
-	return matchIndices;
-}
-
-
-// Match a model against each criterion in a criteria query
-
-function matchSet(model, criteria) {
-
-	// Null or {} WHERE query always matches everything
-	if(!criteria || _.isEqual(criteria,{})) return true;
-
-	// By default, treat entries as AND
-	return _.all(criteria,function(criterion,key) {
-		return matchItem(model, key, criterion);
-	});
-}
-
-
-function matchOr(model, disjuncts) {
-	var outcome = false;
-	_.each(disjuncts, function(criteria) {
-		if(matchSet(model, criteria)) outcome = true;
-	});
-	return outcome;
-}
-
-function matchAnd(model, conjuncts) {
-	var outcome = true;
-	_.each(conjuncts, function(criteria) {
-		if(!matchSet(model, criteria)) outcome = false;
-	});
-	return outcome;
-}
-
-function matchLike(model, criteria) {
-	for(var key in criteria) {
-
-		// Check that criterion attribute and is at least similar to the model's value for that attr
-		if(!model[key] || !_.str.include(model[key],criteria[key])) {
+		if(key.toLowerCase() === 'or') {
+			return matchOr(model, criterion);
+		} else if(key.toLowerCase() === 'not') {
+			return matchNot(model, criterion);
+		} else if(key.toLowerCase() === 'and') {
+			return matchAnd(model, criterion);
+		} else if(key.toLowerCase() === 'like') {
+			return matchLike(model, criterion);
+		} 
+		// IN query
+		else if (_.isArray(criterion)) {
+			return _.any(criterion, function (val){
+				return model[key] === val;
+			});
+		}
+		// ensure the key attr exists in model
+		else if (_.isUndefined(model[key])) {
 			return false;
 		}
-	}
-	return true;
-}
 
-function matchNot(model, criteria) {
-	return !matchSet(model, criteria);
-}
-
-function matchItem(model, key, criterion) {
-
-	if(key.toLowerCase() === 'or') {
-		return matchOr(model, criterion);
-	} else if(key.toLowerCase() === 'not') {
-		return matchNot(model, criterion);
-	} else if(key.toLowerCase() === 'and') {
-		return matchAnd(model, criterion);
-	} else if(key.toLowerCase() === 'like') {
-		return matchLike(model, criterion);
-	} 
-	// IN query
-	else if (_.isArray(criterion)) {
-		return _.any(criterion, function (val){
-			return model[key] === val;
-		});
-	}
-	// ensure the key attr exists in model
-	else if (_.isUndefined(model[key])) {
-		return false;
+		// ensure the key attr matches model attr in model
+		else if((model[key] !== criterion)) {
+			return false;
+		}
+		// Otherwise this is a match
+		return true;
 	}
 
-	// ensure the key attr matches model attr in model
-	else if((model[key] !== criterion)) {
-		return false;
-	}
-	// Otherwise this is a match
-	return true;
+
+	return adapter;
 }
 
 // Public API
 //	* NOTE: The public API for adapters is a function that can be passed a set of options
 //	* It returns the complete adapter, augmented with the options provided
 module.exports = function (options) {
+	var adapter = new MySQLAdapter();
 	adapter.config = _.extend(adapter.config, options || {});
 	return adapter;
 };

@@ -11,9 +11,6 @@ var mysql = require('mysql');
 
 function MySQLAdapter() {
 
-	// Local cache of schema
-	var schema = {};
-
 	var adapter = {
 
 		config: {
@@ -42,9 +39,10 @@ function MySQLAdapter() {
 		// Fetch the schema for a collection
 		// (contains attributes and autoIncrement value)
 		describe: function (collectionName, cb) {
+			var self = this;
 			pool(function __DESCRIBE__ (connection, cb) {
-				collectionName = mysql.escapeId(collectionName);
-				var query = 'DESCRIBE '+collectionName;
+				var tableName = mysql.escapeId(collectionName);
+				var query = 'DESCRIBE '+tableName;
 				connection.query(query, function __DESCRIBE__ (err, result) {
 					if (err) {
 						if (err.code === 'ER_NO_SUCH_TABLE') {
@@ -52,7 +50,10 @@ function MySQLAdapter() {
 						}
 						else return cb(err);
 					}
-					cb(null, result);
+
+					// TODO: check that what was returned actually matches the cache
+					
+					cb(null, result && self.schema[collectionName]);
 				});
 			}, cb);
 		},
@@ -154,42 +155,9 @@ function MySQLAdapter() {
 				var query = 
 					'SELECT * FROM ' + tableName + ' ';
 
-				if (options.where) {
-					query += 
-						'WHERE ' + 
-						sql.criteria(collectionName, options.where) + ' ';
-				}
-
-				if (options.sort) {
-					query += 'ORDER BY ';
-
-					// Sort through each sort attribute criteria
-					_.each(options.sort,function (direction, attrName) {
-
-						query += sql.prepareAttribute(collectionName, null, attrName) + ' ';
-
-						// Basic MongoDB-style numeric sort direction
-						if (direction === 1) {
-							query += 'ASC ';
-						}
-						else {
-							query += 'DESC ';
-						}
-					});
-				}
-
-				if (options.limit) {
-					query += 'LIMIT ' + options.limit + ' ';
-				}
-				else {
-					// Some MySQL hackery here.  For details, see: 
-					// http://stackoverflow.com/questions/255517/mysql-offset-infinite-rows
-					query += 'LIMIT 18446744073709551610 ';
-				}
-
-				if (options.skip) {
-					query += 'OFFSET ' + options.skip + ' ';
-				}
+				// console.log('\n\n',options);
+				query += sql.serializeOptions(collectionName, options);
+				// console.log(query);
 
 				// Run query
 				connection.query(query, function (err, result) {
@@ -209,12 +177,8 @@ function MySQLAdapter() {
 				var query = 
 					'UPDATE ' + tableName + ' SET ' +
 					sql.criteria(collectionName, values) + ' ';
-				
-				if (options.where) {
-					query += 
-						'WHERE ' + 
-						sql.criteria(collectionName, options.where);
-				}
+
+				query += sql.serializeOptions(collectionName, options);
 
 				// Run query
 				connection.query(query, function (err, result) {
@@ -234,11 +198,7 @@ function MySQLAdapter() {
 				var query = 
 					'DELETE FROM ' + tableName + ' ';
 
-				if (options.where) {
-					query += 
-						'WHERE ' + 
-						sql.criteria(collectionName, options.where);
-				}
+				query += sql.serializeOptions(collectionName, options);
 
 				// Run query
 				connection.query(query, function (err, result) {
@@ -279,8 +239,9 @@ function MySQLAdapter() {
 		},
 		
 		// Create a value csv for a DQL query
-		values: function (collectionName, values) {
-			return sql.build(collectionName, values, sql.prepareValue);
+		// key => optional, overrides the keys in the dictionary
+		values: function (collectionName, values, key) {
+			return sql.build(collectionName, values, sql.prepareValue, ', ', key);
 		},
 
 		// Create a WHERE criteria snippet for a DQL query
@@ -296,8 +257,8 @@ function MySQLAdapter() {
 
 		prepareValue: function (collectionName, value, attrName) {
 
-			// Cast DATE to SQL
-			if (adapter.schema[collectionName][attrName].type === 'DATE') {
+			// Cast dates to SQL
+			if (_.isDate(value)) {
 				value = toSqlDate(value);
 			}
 
@@ -309,20 +270,115 @@ function MySQLAdapter() {
 			return mysql.escapeId(attrName);
 		},
 
-		
+		// Starting point for predicate evaluation
+		where: function (collectionName, where) {
+			return sql.build(collectionName, where, sql.predicate, ' AND ');
+		},
+
+		// Recursively parse a predicate calculus and build a SQL query
+		predicate: function (collectionName, criterion, key) {
+			var queryPart = '';
+
+			// OR
+			if(key.toLowerCase() === 'or') {
+				queryPart = sql.build(collectionName, criterion, sql.where, ' OR ');
+				return ' ( ' + queryPart + ' ) ';
+			} 
+
+			// AND
+			else if(key.toLowerCase() === 'and') {
+				queryPart = sql.build(collectionName, criterion, sql.where, ' AND ');
+				return ' ( ' + queryPart + ' ) ';
+			}
+
+			// IN
+			else if (_.isArray(criterion)) {
+				queryPart = sql.prepareAttribute(collectionName, null, key) + 
+					" IN (" + sql.values(collectionName, criterion, key) + ")";
+				return queryPart;
+			}
+
+			// LIKE
+			else if (key.toLowerCase() === 'like') {
+				return sql.build(collectionName, criterion, function (collectionName, value, attrName) {
+					var attrStr = sql.prepareAttribute(collectionName, value, attrName);
+					var valueStr = sql.prepareValue(collectionName, "%" + value + "%", attrName);
+					return attrStr + " LIKE " + valueStr;
+				}, ' AND ');
+			}
+
+			// NOT
+			else if (key.toLowerCase() === 'not') {
+				throw new Error('NOT not supported yet!');
+			}
+
+			// Basic criteria item
+			else {
+				return sql.prepareCriterion(collectionName, criterion, key);
+			}
+ 
+		},
+
+		serializeOptions: function (collectionName, options) {
+			var queryPart = '';
+
+			if (options.where) {
+				queryPart += 
+					'WHERE ' + 
+					sql.where(collectionName, options.where) + ' ';
+			}
+
+			if (options.sort) {
+				queryPart += 'ORDER BY ';
+
+				// Sort through each sort attribute criteria
+				_.each(options.sort,function (direction, attrName) {
+
+					queryPart += sql.prepareAttribute(collectionName, null, attrName) + ' ';
+
+					// Basic MongoDB-style numeric sort direction
+					if (direction === 1) {
+						queryPart += 'ASC ';
+					}
+					else {
+						queryPart += 'DESC ';
+					}
+				});
+			}
+
+			if (options.limit) {
+				queryPart += 'LIMIT ' + options.limit + ' ';
+			}
+			else {
+				// Some MySQL hackery here.  For details, see: 
+				// http://stackoverflow.com/questions/255517/mysql-offset-infinite-rows
+				queryPart += 'LIMIT 18446744073709551610 ';
+			}
+
+			if (options.skip) {
+				queryPart += 'OFFSET ' + options.skip + ' ';
+			}
+
+			return queryPart;
+		},
 
 		// Put together the CSV aggregation
-		build: function (collectionName, collection, fn) {
+		// separator => optional, defaults to ', '
+		// keyOverride => optional, overrides the keys in the dictionary 
+		//					(used for generating value lists in IN queries)
+		build: function (collectionName, collection, fn, separator, keyOverride) {
+			separator = separator || ', ';
 			var $sql = '';
 			_.each(collection, function (value, key) {
-				$sql += fn(collectionName, value, key);
+				if (keyOverride) console.log("KEY OVERRIDE:",keyOverride);
+				$sql += fn(collectionName, value, keyOverride || key);
 
-				// (always append comma)
-				$sql += ', ';
+				// (always append separator)
+				$sql += separator;
 			});
 
 			// (then remove final one)
-			return _.str.rtrim($sql, ', ');
+			return _.str.rtrim($sql, separator);
 		}
 	};
 
@@ -362,177 +418,13 @@ function MySQLAdapter() {
 			
 			case 'int':
 			case 'integer'	: return 'INT';
+
+			case 'float':
+			case 'double'	: return 'FLOAT';
 			
 			case 'date'		: return 'DATE';
 		}
 	}
-
-
-
-
-
-
-
-
-
-
-
-
-	// Run criteria query against data aset
-	function applyFilter(data, criteria) {
-		if(!data) return data;
-		else {
-			return _.filter(data, function(model) {
-				return matchSet(model, criteria);
-			});
-		}
-	}
-
-	function applySort(data, sort) {
-		if (!sort || !data) return data;
-		else {
-			var sortedData = _.clone(data);
-
-			// Sort through each sort attribute criteria
-			_.each(sort,function (direction, attrName) {
-
-				var comparator;
-
-				// Basic MongoDB-style numeric sort direction
-				if (direction === 1 || direction === -1) {
-					comparator = function (model) {
-						return model[attrName];
-					};
-				}
-				else comparator = comparator;
-
-				// Actually sort data
-				sortedData = _.sortBy(sortedData,comparator);
-
-
-				// Reverse it if necessary (if -1 direction specified)
-				if (direction === -1) sortedData.reverse();
-			});
-			return sortedData;
-		}
-	}
-	// Ignore the first *skip* models
-	function applySkip(data, skip) {
-		if (!skip || !data) return data;
-		else {
-			return _.rest(data,skip);
-		}
-	}
-
-	function applyLimit(data, limit) {
-		if (!limit || !data) return data;
-		else {
-			return _.first(data,limit);
-		}
-	}
-
-	// Find models in data which satisfy the options criteria, 
-	// then return their indices in order
-	function getMatchIndices(data, options) {
-		// Remember original indices
-		var origIndexKey = '_waterline_dirty_origindex';
-		var matches = _.clone(data);
-		_.each(matches,function (model, index) {
-			// Determine origIndex key
-			// while (model[origIndexKey]) { origIndexKey = '_' + origIndexKey; }
-			model[origIndexKey] = index;
-		});
-
-		// Query and return result set using criteria
-		matches = applyFilter(matches, options.where);
-		matches = applySort(matches, options.sort);
-		matches = applySkip(matches, options.skip);
-		matches = applyLimit(matches, options.limit);
-		var matchIndices = _.pluck(matches,origIndexKey);
-
-		// Remove original index key which is keeping track of the index in the unsorted data
-		_.each(data, function (datum) {
-			delete datum[origIndexKey];
-		});
-		return matchIndices;
-	}
-
-
-	// Match a model against each criterion in a criteria query
-
-	function matchSet(model, criteria) {
-
-		// Null or {} WHERE query always matches everything
-		if(!criteria || _.isEqual(criteria,{})) return true;
-
-		// By default, treat entries as AND
-		return _.all(criteria,function(criterion,key) {
-			return matchItem(model, key, criterion);
-		});
-	}
-
-
-	function matchOr(model, disjuncts) {
-		var outcome = false;
-		_.each(disjuncts, function(criteria) {
-			if(matchSet(model, criteria)) outcome = true;
-		});
-		return outcome;
-	}
-
-	function matchAnd(model, conjuncts) {
-		var outcome = true;
-		_.each(conjuncts, function(criteria) {
-			if(!matchSet(model, criteria)) outcome = false;
-		});
-		return outcome;
-	}
-
-	function matchLike(model, criteria) {
-		for(var key in criteria) {
-
-			// Check that criterion attribute and is at least similar to the model's value for that attr
-			if(!model[key] || !_.str.include(model[key],criteria[key])) {
-				return false;
-			}
-		}
-		return true;
-	}
-
-	function matchNot(model, criteria) {
-		return !matchSet(model, criteria);
-	}
-
-	function matchItem(model, key, criterion) {
-
-		if(key.toLowerCase() === 'or') {
-			return matchOr(model, criterion);
-		} else if(key.toLowerCase() === 'not') {
-			return matchNot(model, criterion);
-		} else if(key.toLowerCase() === 'and') {
-			return matchAnd(model, criterion);
-		} else if(key.toLowerCase() === 'like') {
-			return matchLike(model, criterion);
-		} 
-		// IN query
-		else if (_.isArray(criterion)) {
-			return _.any(criterion, function (val){
-				return model[key] === val;
-			});
-		}
-		// ensure the key attr exists in model
-		else if (_.isUndefined(model[key])) {
-			return false;
-		}
-
-		// ensure the key attr matches model attr in model
-		else if((model[key] !== criterion)) {
-			return false;
-		}
-		// Otherwise this is a match
-		return true;
-	}
-
 
 	return adapter;
 }

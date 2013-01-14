@@ -157,7 +157,38 @@ function MySQLAdapter() {
 				if (options.where) {
 					query += 
 						'WHERE ' + 
-						sql.criteria(collectionName, options.where);
+						sql.criteria(collectionName, options.where) + ' ';
+				}
+
+				if (options.sort) {
+					query += 'ORDER BY ';
+
+					// Sort through each sort attribute criteria
+					_.each(options.sort,function (direction, attrName) {
+
+						query += sql.prepareAttribute(collectionName, null, attrName) + ' ';
+
+						// Basic MongoDB-style numeric sort direction
+						if (direction === 1) {
+							query += 'ASC ';
+						}
+						else {
+							query += 'DESC ';
+						}
+					});
+				}
+
+				if (options.limit) {
+					query += 'LIMIT ' + options.limit + ' ';
+				}
+				else {
+					// Some MySQL hackery here.  For details, see: 
+					// http://stackoverflow.com/questions/255517/mysql-offset-infinite-rows
+					query += 'LIMIT 18446744073709551610 ';
+				}
+
+				if (options.skip) {
+					query += 'OFFSET ' + options.skip + ' ';
 				}
 
 				// Run query

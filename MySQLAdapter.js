@@ -152,10 +152,13 @@ function MySQLAdapter() {
 				
 				// Build query
 				var query = 
-					'SELECT * FROM ' + tableName + ' ' +
-					'WHERE ' + 
-					sql.criteria(collectionName, options.where) +
-					'';
+					'SELECT * FROM ' + tableName + ' ';
+
+				if (options.where) {
+					query += 
+						'WHERE ' + 
+						sql.criteria(collectionName, options.where);
+				}
 
 				// Run query
 				connection.query(query, function (err, result) {
@@ -174,7 +177,13 @@ function MySQLAdapter() {
 				// Build query
 				var query = 
 					'UPDATE ' + tableName + ' SET ' +
-					sql.criteria(collectionName, values);
+					sql.criteria(collectionName, values) + ' ';
+				
+				if (options.where) {
+					query += 
+						'WHERE ' + 
+						sql.criteria(collectionName, options.where);
+				}
 
 				// Run query
 				connection.query(query, function (err, result) {
@@ -191,7 +200,14 @@ function MySQLAdapter() {
 				var tableName = mysql.escapeId(collectionName);
 				
 				// Build query
-				var query = '';
+				var query = 
+					'DELETE FROM ' + tableName + ' ';
+
+				if (options.where) {
+					query += 
+						'WHERE ' + 
+						sql.criteria(collectionName, options.where);
+				}
 
 				// Run query
 				connection.query(query, function (err, result) {

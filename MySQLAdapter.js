@@ -172,7 +172,9 @@ function MySQLAdapter() {
 				var tableName = mysql.escapeId(collectionName);
 				
 				// Build query
-				var query = '';
+				var query = 
+					'UPDATE ' + tableName + ' SET ' +
+					sql.criteria(collectionName, values);
 
 				// Run query
 				connection.query(query, function (err, result) {

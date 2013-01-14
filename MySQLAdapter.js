@@ -155,7 +155,6 @@ function MySQLAdapter() {
 				var query = 
 					'SELECT * FROM ' + tableName + ' ';
 
-				// console.log('\n\n',options);
 				query += sql.serializeOptions(collectionName, options);
 				// console.log(query);
 
@@ -252,7 +251,12 @@ function MySQLAdapter() {
 		prepareCriterion: function (collectionName, value, attrName) {
 			var attrStr = sql.prepareAttribute(collectionName, value, attrName);
 			var valueStr = sql.prepareValue(collectionName, value, attrName);
-			return attrStr + "=" + valueStr;
+			
+			// Special IS NULL case
+			if (value === null) {
+				return attrStr + " IS NULL";
+			}
+			else return attrStr + "=" + valueStr;
 		},
 
 		prepareValue: function (collectionName, value, attrName) {
@@ -370,7 +374,6 @@ function MySQLAdapter() {
 			separator = separator || ', ';
 			var $sql = '';
 			_.each(collection, function (value, key) {
-				if (keyOverride) console.log("KEY OVERRIDE:",keyOverride);
 				$sql += fn(collectionName, value, keyOverride || key);
 
 				// (always append separator)

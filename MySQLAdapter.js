@@ -10,6 +10,10 @@ _.str = require('underscore.string');
 var mysql = require('mysql');
 
 function MySQLAdapter() {
+
+	// Local cache of schema
+	var schema = {};
+
 	var adapter = {
 
 		config: {
@@ -61,7 +65,7 @@ function MySQLAdapter() {
 				collectionName = mysql.escapeId(collectionName);
 				
 				// Iterate through each attribute, building a query string
-				var $schema = sql.schema(attributes);
+				var $schema = sql.schema(collectionName, attributes);
 
 				// Build query
 				var query = 
@@ -106,25 +110,33 @@ function MySQLAdapter() {
 
 
 		// Create one or more new models in the collection
-		create: function(collectionName, values, cb) {
+		create: function(collectionName, data, cb) {
 			pool(function (connection, cb) {
 				
 				// Escape table name
-				collectionName = mysql.escapeId(collectionName);
+				var tableName = mysql.escapeId(collectionName);
 				
 				// Build query
 				var query = 
-					'INSERT INTO ' + collectionName + ' ' +
+					'INSERT INTO ' + tableName + ' ' +
 					'(' +
-						// $attributes
+						sql.attributes(collectionName, data) +
 					')' +
 					' VALUES (' +
-						// $values
+						sql.values(collectionName, data) +
 					')';
 
 				// Run query
 				connection.query(query, function (err, result) {
-					cb(err, result);
+					
+					// Build model to return
+					var model = _.extend({}, data, {
+
+						// TODO: look up the autoIncrement attribute and increment that instead of assuming `id`
+						id: result.insertId
+					});
+
+					cb(err, model);
 				});
 			}, cb);
 		},
@@ -136,10 +148,14 @@ function MySQLAdapter() {
 			pool(function (connection, cb) {
 				
 				// Escape table name
-				collectionName = mysql.escapeId(collectionName);
+				var tableName = mysql.escapeId(collectionName);
 				
 				// Build query
-				var query = '';
+				var query = 
+					'SELECT * FROM ' + tableName + ' ' +
+					'WHERE ' + 
+					sql.criteria(collectionName, options.where) +
+					'';
 
 				// Run query
 				connection.query(query, function (err, result) {
@@ -153,7 +169,7 @@ function MySQLAdapter() {
 			pool(function (connection, cb) {
 				
 				// Escape table name
-				collectionName = mysql.escapeId(collectionName);
+				var tableName = mysql.escapeId(collectionName);
 				
 				// Build query
 				var query = '';
@@ -170,7 +186,7 @@ function MySQLAdapter() {
 			pool(function (connection, cb) {
 				
 				// Escape table name
-				collectionName = mysql.escapeId(collectionName);
+				var tableName = mysql.escapeId(collectionName);
 				
 				// Build query
 				var query = '';
@@ -196,21 +212,10 @@ function MySQLAdapter() {
 
 	var sql = {
 		// Create a schema csv for a DDL query
-		schema: function (attributes) {
-			return sql.build(attributes, sql._schema);
+		schema: function (collectionName, attributes) {
+			return sql.build(collectionName, attributes, sql._schema);
 		},
-		// Create an attribute csv for a DQL query
-		attributes: function (attributes) {
-			return sql.build(attributes, sql._attributes);
-		},
-		
-		// Create a value csv for a DQL query
-		values: function (value) {
-			return sql.build(values, sql._values);
-		},
-
-		// TODO
-		_schema: function (attribute, attrName) {
+		_schema: function (collectionName, attribute, attrName) {
 			attrName = mysql.escapeId(attrName);
 			var type = sqlTypeCast(attribute.type);
 			return attrName + ' ' + 
@@ -219,22 +224,49 @@ function MySQLAdapter() {
 					'PRIMARY KEY('+ attrName +')' : '');
 		},
 
-		// TODO
-		_attributes: function (attributes) {
-			return '';
+		// Create an attribute csv for a DQL query
+		attributes: function (collectionName, attributes) {
+			return sql.build(collectionName, attributes, sql.prepareAttribute);
+		},
+		
+		// Create a value csv for a DQL query
+		values: function (collectionName, values) {
+			return sql.build(collectionName, values, sql.prepareValue);
+		},
+
+		// Create a WHERE criteria snippet for a DQL query
+		criteria: function (collectionName, values) {
+			return sql.build(collectionName, values, sql.prepareCriterion);
+		},
+
+		prepareCriterion: function (collectionName, value, attrName) {
+			var attrStr = sql.prepareAttribute(collectionName, value, attrName);
+			var valueStr = sql.prepareValue(collectionName, value, attrName);
+			return attrStr + "=" + valueStr;
+		},
+
+		prepareValue: function (collectionName, value, attrName) {
+
+			// Cast DATE to SQL
+			if (adapter.schema[collectionName][attrName].type === 'DATE') {
+				value = toSqlDate(value);
+			}
+
+			// Escape (also wraps in quotes)
+			return mysql.escape(value);
+		},
+
+		prepareAttribute: function (collectionName, value, attrName) {
+			return mysql.escapeId(attrName);
 		},
 
 		
-		// TODO
-		_values: function (values) {
-			return '';
-		},
 
 		// Put together the CSV aggregation
-		build: function (collection, fn) {
+		build: function (collectionName, collection, fn) {
 			var $sql = '';
 			_.each(collection, function (value, key) {
-				$sql += fn(value, key);
+				$sql += fn(collectionName, value, key);
 
 				// (always append comma)
 				$sql += ', ';
@@ -244,6 +276,21 @@ function MySQLAdapter() {
 			return _.str.rtrim($sql, ', ');
 		}
 	};
+
+	function wrapInQuotes (val) {
+		return '"'+ val + '"';
+	}
+
+	function toSqlDate (date) {
+		return [
+			[
+				date.getFullYear(),
+				((date.getMonth() < 9 ? '0' : '') + (date.getMonth()+1)),
+				((date.getDate() < 10 ? '0' : '') + date.getDate())
+			].join("-"),
+			date.toLocaleTimeString()
+		].join(" ");
+	}
 
 
 	// Wrap a function in the logic necessary to provision a connection from the pool
@@ -303,7 +350,11 @@ function MySQLAdapter() {
 				var comparator;
 
 				// Basic MongoDB-style numeric sort direction
-				if (direction === 1 || direction === -1) comparator = function (model) {return model[attrName];};
+				if (direction === 1 || direction === -1) {
+					comparator = function (model) {
+						return model[attrName];
+					};
+				}
 				else comparator = comparator;
 
 				// Actually sort data

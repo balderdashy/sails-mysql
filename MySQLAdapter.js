@@ -24,14 +24,16 @@ function MySQLAdapter() {
 			if(this.config.pool) {
 				this.pool = mysql.createPool(marshalConfig(adapter.config));
 			}
-
 			cb();
 		},
 
 		teardown: function(cb) {
 			var my = this;
 
-			// TODO: Drain pool
+			if (this.config.pool) {
+				// TODO: Drain pool
+			}
+
 			cb && cb();
 		},
 

@@ -374,8 +374,9 @@ function MySQLAdapter() {
 		// Use a new connection each time
 		if(!adapter.config.pool) {
 			var connection = mysql.createConnection(marshalConfig(adapter.config));
-			connection.connect();
-			afterwards(null, connection);
+			connection.connect(function (err) {
+				afterwards(err,connection);
+			});
 		}
 
 		// Use connection pooling (using the new stuff from the `pool` branch in felixge's node-mysql)
@@ -388,8 +389,9 @@ function MySQLAdapter() {
 		function afterwards(err, connection) {
 			if(err) return cb(err);
 			logic(connection, function(err, result) {
-				connection.end();
-				cb(err, result);
+				connection.end(function () {
+					cb(err, result);
+				});
 			});
 		}
 	}

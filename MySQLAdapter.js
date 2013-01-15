@@ -13,12 +13,8 @@ function MySQLAdapter() {
 
 	var adapter = {
 
-		config: {
-			host: 'localhost',
-			user: 'waterline',
-			password: 'abc123',
-			database: 'waterline'
-		},
+		// Passed down by collection
+		config: {},
 
 		// Initialize the underlying data model
 		initialize: function(cb) {

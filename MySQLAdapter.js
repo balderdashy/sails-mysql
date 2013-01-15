@@ -23,6 +23,13 @@ function MySQLAdapter() {
 			// Create the connection pool (if configured to do so)
 			if(this.config.pool) {
 				this.pool = mysql.createPool(marshalConfig(adapter.config));
+
+				// Always make sure to keep a single connection tethered
+				// to prevent shutdowns due to not having any live connections 
+				// (hopefully this will be resolved in a subsequent release of node-mysql)
+				this.pool.getConnection(function (err, connection) {
+					self.tether = connection;
+				});
 			}
 			cb();
 		},

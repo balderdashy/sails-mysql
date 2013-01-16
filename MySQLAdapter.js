@@ -16,6 +16,38 @@ function MySQLAdapter() {
 		// Passed down by collection
 		config: {},
 
+		escape: function (val) {
+			return mysql.escape(val);
+		},	
+
+		// Special query
+		query: function (query, data, cb) {
+			if (_.isFunction(data)) {
+				cb = data;
+				data = null;
+			}
+			spawnConnection(function (connection, cb) {
+
+				// Escape table name
+				collectionName = mysql.escapeId(collectionName);
+
+				// Iterate through each attribute, building a query string
+				var $schema = sql.schema(collectionName, attributes);
+
+				// Build query
+				var query = 'CREATE TABLE ' + collectionName + ' (' + $schema + ')';
+
+				// Run query
+				if (data) connection.query(query, data, afterQuery);
+				else connection.query(query, afterQuery);
+
+				function afterQuery (err, result) {
+					if(err) return cb(err);
+					cb(null, result);
+				}
+			}, cb);
+		},
+
 		// Initialize the underlying data model
 		initialize: function(cb) {
 			var self = this;

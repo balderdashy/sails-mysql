@@ -322,7 +322,9 @@ function MySQLAdapter() {
 			else if(key.toLowerCase() === 'like') {
 				return sql.build(collectionName, criterion, function(collectionName, value, attrName) {
 					var attrStr = sql.prepareAttribute(collectionName, value, attrName);
-					var valueStr = sql.prepareValue(collectionName, "%" + value + "%", attrName);
+
+					// % signs are handled by Waterline automatically
+					var valueStr = sql.prepareValue(collectionName, value, attrName);
 					return attrStr + " LIKE " + valueStr;
 				}, ' AND ');
 			}

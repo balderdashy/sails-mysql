@@ -323,6 +323,11 @@ function MySQLAdapter() {
 				return sql.build(collectionName, criterion, function(collectionName, value, attrName) {
 					var attrStr = sql.prepareAttribute(collectionName, value, attrName);
 
+					// TODO: Handle regexp criterias
+					if (_.isRegExp(valueStr)) {
+						throw new Error('RegExp LIKE criterias not supported by the MySQLAdapter yet.  Please contribute @ http://github.com/balderdashy/waterline-mysql');
+					}
+
 					// Handle escaped percent (%) signs [encoded as %%%]
 					valueStr = valueStr.replace(/%%%/g, '\\%');
 

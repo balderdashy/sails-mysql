@@ -323,7 +323,9 @@ function MySQLAdapter() {
 				return sql.build(collectionName, criterion, function(collectionName, value, attrName) {
 					var attrStr = sql.prepareAttribute(collectionName, value, attrName);
 
-					// % signs are handled by Waterline automatically
+					// Handle escaped percent (%) signs [encoded as %%%]
+					valueStr = valueStr.replace(/%%%/g, '\\%');
+
 					var valueStr = sql.prepareValue(collectionName, value, attrName);
 					return attrStr + " LIKE " + valueStr;
 				}, ' AND ');

@@ -1,6 +1,6 @@
 {
   "name": "waterline-mysql",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "MySQL adapter for Waterline ORM",
   "main": "MySQLAdapter.js",
   "scripts": {

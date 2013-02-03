@@ -323,15 +323,17 @@ function MySQLAdapter() {
 				return sql.build(collectionName, criterion, function(collectionName, value, attrName) {
 					var attrStr = sql.prepareAttribute(collectionName, value, attrName);
 
+					
 					// TODO: Handle regexp criterias
-					if (_.isRegExp(valueStr)) {
+					if (_.isRegExp(value)) {
 						throw new Error('RegExp LIKE criterias not supported by the MySQLAdapter yet.  Please contribute @ http://github.com/balderdashy/waterline-mysql');
 					}
+					
+					var valueStr = sql.prepareValue(collectionName, value, attrName);
 
 					// Handle escaped percent (%) signs [encoded as %%%]
 					valueStr = valueStr.replace(/%%%/g, '\\%');
 
-					var valueStr = sql.prepareValue(collectionName, value, attrName);
 					return attrStr + " LIKE " + valueStr;
 				}, ' AND ');
 			}

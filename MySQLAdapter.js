@@ -266,14 +266,47 @@ function MySQLAdapter() {
 			return sql.build(collectionName, values, sql.prepareCriterion);
 		},
 
-		prepareCriterion: function(collectionName, value, attrName) {
-			var attrStr = sql.prepareAttribute(collectionName, value, attrName);
-			var valueStr = sql.prepareValue(collectionName, value, attrName);
+		prepareCriterion: function(collectionName, value, key, parentKey) {
+			// Special sub-attr case
+			if (validSubAttrCriteria(value)) {
+				return sql.where(collectionName, value, null, key);
 
-			// Special IS NULL case
-			if(value === null) {
-				return attrStr + " IS NULL";
-			} else return attrStr + "=" + valueStr;
+			}
+			
+			// Build escaped attr and value strings using either the key,
+			// or if one exists, the parent key
+			var attrStr, valueStr;
+
+
+			// Special comparator case
+			if (parentKey) {
+
+				attrStr = sql.prepareAttribute(collectionName, value, parentKey);
+				valueStr = sql.prepareValue(collectionName, value, parentKey);
+
+				if (key === '<' || key === 'lessThan') return attrStr + '<' + valueStr;
+				else if (key === '<=' || key === 'lessThanOrEqual') return attrStr + '<=' + valueStr;
+				else if (key === '>' || key === 'greaterThan') return attrStr + '>' + valueStr;
+				else if (key === '>=' || key === 'greaterThanOrEqual') return attrStr + '>=' + valueStr;
+				else if (key === '!' || key === 'not') {
+					if (value === null) return attrStr + 'IS NOT NULL';
+					else return attrStr + '<>' + valueStr;
+				}
+				else if (key === 'contains') return attrStr + ' LIKE %' + valueStr + '%';
+				else if (key === 'startsWith') return attrStr + ' LIKE ' + valueStr + '%';
+				else if (key === 'endsWith') return attrStr + ' LIKE %' + valueStr;
+				else throw new Error ('Unknown comparator: ' + key);
+			}
+			else {
+				attrStr = sql.prepareAttribute(collectionName, value, key);
+				valueStr = sql.prepareValue(collectionName, value, key);
+
+				// Special IS NULL case
+				if(_.isNull(value)) {
+					return attrStr + " IS NULL";
+				} 
+				else return attrStr + "=" + valueStr;
+			}
 		},
 
 		prepareValue: function(collectionName, value, attrName) {
@@ -292,13 +325,19 @@ function MySQLAdapter() {
 		},
 
 		// Starting point for predicate evaluation
-		where: function(collectionName, where) {
-			return sql.build(collectionName, where, sql.predicate, ' AND ');
+		// parentKey => if set, look for comparators and apply them to the parent key
+		where: function(collectionName, where, key, parentKey) {
+			return sql.build(collectionName, where, sql.predicate, ' AND ', undefined, parentKey);
 		},
 
 		// Recursively parse a predicate calculus and build a SQL query
-		predicate: function(collectionName, criterion, key) {
+		predicate: function(collectionName, criterion, key, parentKey) {
 			var queryPart = '';
+
+			
+			if (parentKey) {
+				return sql.prepareCriterion(collectionName, criterion, key, parentKey);
+			}
 
 			// OR
 			if(key.toLowerCase() === 'or') {
@@ -385,7 +424,7 @@ function MySQLAdapter() {
 			if(options.skip) {
 				queryPart += 'OFFSET ' + options.skip + ' ';
 			}
-
+			
 			return queryPart;
 		},
 
@@ -393,11 +432,12 @@ function MySQLAdapter() {
 		// separator => optional, defaults to ', '
 		// keyOverride => optional, overrides the keys in the dictionary 
 		//					(used for generating value lists in IN queries)
-		build: function(collectionName, collection, fn, separator, keyOverride) {
+		// parentKey => key of the parent to this object
+		build: function(collectionName, collection, fn, separator, keyOverride, parentKey) {
 			separator = separator || ', ';
 			var $sql = '';
 			_.each(collection, function(value, key) {
-				$sql += fn(collectionName, value, keyOverride || key);
+				$sql += fn(collectionName, value, keyOverride || key, parentKey);
 
 				// (always append separator)
 				$sql += separator;
@@ -476,6 +516,16 @@ function MySQLAdapter() {
 		case 'date':
 			return 'DATE';
 		}
+	}
+
+	// Return whether this criteria is valid as an object inside of an attribute
+	function validSubAttrCriteria (c) {
+		return _.isObject(c) && (
+			c.not || c.greaterThan || c.lessThan || 
+			c.greaterThanOrEqual || c.lessThanOrEqual ||
+			c['<'] || c['<='] || c['!'] || c['>'] || c['>='] ||
+			c.startsWith || c.endsWith || c.contains
+		);
 	}
 
 	return adapter;

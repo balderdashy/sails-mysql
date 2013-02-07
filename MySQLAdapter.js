@@ -21,6 +21,7 @@ function MySQLAdapter() {
 		},	
 
 		// Special query
+		// TODO
 		query: function (query, data, cb) {
 			if (_.isFunction(data)) {
 				cb = data;

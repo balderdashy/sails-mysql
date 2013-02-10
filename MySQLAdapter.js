@@ -9,68 +9,83 @@ var _ = require('underscore');
 _.str = require('underscore.string');
 var mysql = require('mysql');
 
-function MySQLAdapter() {
+module.exports = function () {
+
+	// Keep track of all the dbs used by the app
+	var dbs = {};
 
 	var adapter = {
 
-		// Passed down by collection
-		config: {},
+		// Enable dev-only commit log for now (in the future, native transaction support will be added)
+		commitLog: {
+			identity: '__default_waterline_mysql_transaction',
+			adapter: 'waterline-dirty'
+		},
+
+		defaults: {
+
+			// Pooling doesn't work yet, so it's off by default
+			pool: false
+		},
 
 		escape: function (val) {
 			return mysql.escape(val);
 		},	
 
-		// Special query
-		// TODO
+		// Direct access to query
 		query: function (query, data, cb) {
 			if (_.isFunction(data)) {
 				cb = data;
 				data = null;
 			}
 			spawnConnection(function (connection, cb) {
-
-				// Escape table name
-				collectionName = mysql.escapeId(collectionName);
-
-				// Iterate through each attribute, building a query string
-				var $schema = sql.schema(collectionName, attributes);
-
-				// Build query
-				var query = 'CREATE TABLE ' + collectionName + ' (' + $schema + ')';
-
+				
 				// Run query
-				if (data) connection.query(query, data, afterQuery);
-				else connection.query(query, afterQuery);
+				if (data) connection.query(query, data, cb);
+				else connection.query(query, cb);
 
-				function afterQuery (err, result) {
-					if(err) return cb(err);
-					cb(null, result);
-				}
 			}, cb);
 		},
 
 		// Initialize the underlying data model
-		initialize: function(cb) {
+		registerCollection: function(collection, cb) {
 			var self = this;
 
-			// Create the connection pool (if configured to do so)
-			if(this.config.pool) {
-				this.pool = mysql.createPool(marshalConfig(adapter.config));
+			
+			// If the configuration in this collection corresponds 
+			// with a known database, reuse it the connection(s) to that db
+			dbs[collection.identity] = _.find(dbs, function (db) {
+				return	collection.host === db.host &&
+						collection.database === db.database;
+			});
 
-				// Always make sure to keep a single connection tethered
-				// to prevent shutdowns due to not having any live connections 
-				// (hopefully this will be resolved in a subsequent release of node-mysql)
-				this.pool.getConnection(function (err, connection) {
-					self.tether = connection;
-				});
+			// Otherwise initialize for the first time
+			if ( !dbs[collection.identity] ) {
+
+				dbs[collection.identity] = marshalConfig(collection);
+
+				// Create the connection pool (if configured to do so)
+				// TODO: make this actually work
+				if (collection.pool) {
+					this.pool = mysql.createPool(marshalConfig(collection));
+
+					// Always make sure to keep a single connection tethered
+					// to prevent shutdowns due to not having any live connections 
+					// (hopefully this will be resolved in a subsequent release of node-mysql)
+					this.pool.getConnection(function (err, connection) {
+						self.tether = connection;
+						cb();
+					});
+				}
+				else return cb();
 			}
-			cb();
+
 		},
 
 		teardown: function(cb) {
 			var my = this;
 
-			if (this.config.pool) {
+			if (adapter.defaults.pool) {
 				// TODO: Drain pool
 			}
 
@@ -95,18 +110,18 @@ function MySQLAdapter() {
 					// TODO: check that what was returned actually matches the cache
 					cb(null, result && self.schema[collectionName]);
 				});
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 		// Create a new collection
-		define: function(collectionName, attributes, cb) {
+		define: function(collectionName, definition, cb) {
 			spawnConnection(function __DEFINE__(connection, cb) {
 
 				// Escape table name
 				collectionName = mysql.escapeId(collectionName);
 
 				// Iterate through each attribute, building a query string
-				var $schema = sql.schema(collectionName, attributes);
+				var $schema = sql.schema(collectionName, definition.attributes);
 
 				// Build query
 				var query = 'CREATE TABLE ' + collectionName + ' (' + $schema + ')';
@@ -116,7 +131,7 @@ function MySQLAdapter() {
 					if(err) return cb(err);
 					cb(null, result);
 				});
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 		// Drop an existing collection
@@ -138,7 +153,7 @@ function MySQLAdapter() {
 					}
 					cb(null, result);
 				});
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 		// No custom alter necessary-- alter can be performed by using the other methods
@@ -148,14 +163,17 @@ function MySQLAdapter() {
 		create: function(collectionName, data, cb) {
 			spawnConnection(function(connection, cb) {
 
+
 				// Escape table name
 				var tableName = mysql.escapeId(collectionName);
+
 
 				// Build query
 				var query = 'INSERT INTO ' + tableName + ' ' + '(' + sql.attributes(collectionName, data) + ')' + ' VALUES (' + sql.values(collectionName, data) + ')';
 
 				// Run query
 				connection.query(query, function(err, result) {
+					
 					if(err) return cb(err);
 
 					// Build model to return
@@ -167,7 +185,7 @@ function MySQLAdapter() {
 
 					cb(err, model);
 				});
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 		// Find one or more models from the collection
@@ -183,12 +201,12 @@ function MySQLAdapter() {
 				var query = 'SELECT * FROM ' + tableName + ' ';
 
 				query += sql.serializeOptions(collectionName, options);
-				// console.log(query);
+				
 				// Run query
 				connection.query(query, function(err, result) {
 					cb(err, result);
 				});
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 		// Update one or more models in the collection
@@ -207,7 +225,7 @@ function MySQLAdapter() {
 				connection.query(query, function(err, result) {
 					cb(err, result);
 				});
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 		// Delete one or more models from the collection
@@ -226,7 +244,7 @@ function MySQLAdapter() {
 				connection.query(query, function(err, result) {
 					cb(err, result);
 				});
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 
@@ -315,6 +333,11 @@ function MySQLAdapter() {
 			// Cast dates to SQL
 			if(_.isDate(value)) {
 				value = toSqlDate(value);
+			}
+
+			// Cast functions to strings
+			if (_.isFunction(value)) {
+				value = value.toString();
 			}
 
 			// Escape (also wraps in quotes)
@@ -460,19 +483,21 @@ function MySQLAdapter() {
 
 	// Wrap a function in the logic necessary to provision a connection
 	// (either grab a free connection from the pool or create a new one)
-	function spawnConnection(logic, cb) {
+	function spawnConnection(logic, config, cb) {
+
 
 		// Use a new connection each time
-		if(!adapter.config.pool) {
-			var connection = mysql.createConnection(marshalConfig(adapter.config));
+		if( !adapter.defaults.pool ) {
+			var connection = mysql.createConnection(marshalConfig(config));
 			connection.connect(function (err) {
 				afterwards(err,connection);
 			});
 		}
 
 		// Use connection pooling (using the new stuff from the `pool` branch in felixge's node-mysql)
-		// (not 100% sure this stuff is solid yet, so it's off by default)
+		// (off by default)
 		else {
+			// TODO: make this actually work
 			adapter.pool.getConnection(afterwards);
 		}
 
@@ -490,12 +515,12 @@ function MySQLAdapter() {
 	// Convert standard adapter config 
 	// into a custom configuration object for node-mysql
 	function marshalConfig (config) {
-		return {
-			host: config.host,
-			user: config.user,
+		return _.extend(config, {
+			host	: config.host,
+			user	: config.user,
 			password: config.password,
 			database: config.database
-		};
+		});
 	}
 
 	// Cast waterline types into SQL data types
@@ -529,14 +554,5 @@ function MySQLAdapter() {
 		);
 	}
 
-	return adapter;
-}
-
-// Public API
-//	* NOTE: The public API for adapters is a function that can be passed a set of options
-//	* It returns the complete adapter, augmented with the options provided
-module.exports = function(options) {
-	var adapter = new MySQLAdapter();
-	adapter.config = _.extend(adapter.config, options || {});
 	return adapter;
 };

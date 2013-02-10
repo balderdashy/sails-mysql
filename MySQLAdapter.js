@@ -100,15 +100,23 @@ module.exports = function () {
 			spawnConnection(function __DESCRIBE__(connection, cb) {
 				var tableName = mysql.escapeId(collectionName);
 				var query = 'DESCRIBE ' + tableName;
-				connection.query(query, function __DESCRIBE__(err, result) {
+				connection.query(query, function __DESCRIBE__(err, schema) {
 					if(err) {
 						if(err.code === 'ER_NO_SUCH_TABLE') {
-							result = null;
+							return cb ();
 						} else return cb(err);
 					}
 
+					// Convert mysql format to standard javascript object
+					schema = _.reduce(schema, function (memo, field) {
+
+						// TODO: do more stuff here to make this more intelligable
+						memo[field.Field] = field;
+						return memo;
+					}, {});
+
 					// TODO: check that what was returned actually matches the cache
-					cb(null, result && self.schema[collectionName]);
+					cb(null, schema);
 				});
 			}, dbs[collectionName], cb);
 		},
@@ -173,7 +181,7 @@ module.exports = function () {
 
 				// Run query
 				connection.query(query, function(err, result) {
-					
+
 					if(err) return cb(err);
 
 					// Build model to return

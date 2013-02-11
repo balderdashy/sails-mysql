@@ -82,6 +82,7 @@ module.exports = function () {
 				}
 				else return cb();
 			}
+			else return cb();
 
 		},
 

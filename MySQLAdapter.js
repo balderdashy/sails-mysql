@@ -16,6 +16,9 @@ module.exports = function () {
 
 	var adapter = {
 
+		// Whether this adapter is syncable (yes)
+		syncable: true,
+
 		// Enable dev-only commit log for now (in the future, native transaction support will be added)
 		commitLog: {
 			identity: '__default_waterline_mysql_transaction',

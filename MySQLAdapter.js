@@ -9,7 +9,7 @@ var _ = require('underscore');
 _.str = require('underscore.string');
 var mysql = require('mysql');
 
-module.exports = function () {
+module.exports = (function () {
 
 	// Keep track of all the dbs used by the app
 	var dbs = {};
@@ -567,4 +567,4 @@ module.exports = function () {
 	}
 
 	return adapter;
-};
+})();

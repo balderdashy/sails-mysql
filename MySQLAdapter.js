@@ -1,5 +1,5 @@
 /*---------------------------------------------------------------
-	:: waterline-mysql
+	:: sails-mysql
 	-> adapter
 ---------------------------------------------------------------*/
 
@@ -262,7 +262,7 @@ module.exports = (function () {
 
 		// Identity is here to facilitate unit testing
 		// (this is optional and normally automatically populated based on filename)
-		identity: 'waterline-mysql'
+		identity: 'sails-mysql'
 	};
 
 
@@ -401,7 +401,7 @@ module.exports = (function () {
 					
 					// TODO: Handle regexp criterias
 					if (_.isRegExp(value)) {
-						throw new Error('RegExp LIKE criterias not supported by the MySQLAdapter yet.  Please contribute @ http://github.com/balderdashy/waterline-mysql');
+						throw new Error('RegExp LIKE criterias not supported by the MySQLAdapter yet.  Please contribute @ http://github.com/balderdashy/sails-mysql');
 					}
 					
 					var valueStr = sql.prepareValue(collectionName, value, attrName);

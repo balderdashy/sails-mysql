@@ -22,7 +22,7 @@ module.exports = (function () {
 		// Enable dev-only commit log for now (in the future, native transaction support will be added)
 		commitLog: {
 			identity: '__default_waterline_mysql_transaction',
-			adapter: 'waterline-dirty'
+			adapter: 'sails-dirty'
 		},
 
 		defaults: {

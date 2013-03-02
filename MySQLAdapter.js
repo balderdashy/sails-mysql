@@ -29,7 +29,7 @@ module.exports = (function() {
 		defaults: {
 
 			// Pooling doesn't work yet, so it's off by default
-			pool: true
+			pool: false
 		},
 
 		escape: function(val) {

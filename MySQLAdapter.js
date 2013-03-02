@@ -9,7 +9,7 @@ var _ = require('underscore');
 _.str = require('underscore.string');
 var mysql = require('mysql');
 
-module.exports = (function () {
+module.exports = (function() {
 
 	// Keep track of all the dbs used by the app
 	var dbs = {};
@@ -22,7 +22,8 @@ module.exports = (function () {
 		// Enable dev-only commit log for now (in the future, native transaction support will be added)
 		commitLog: {
 			identity: '__default_waterline_mysql_transaction',
-			adapter: 'sails-dirty'
+			adapter: 'sails-dirty',
+			inMemory: true
 		},
 
 		defaults: {
@@ -31,18 +32,18 @@ module.exports = (function () {
 			pool: false
 		},
 
-		escape: function (val) {
+		escape: function(val) {
 			return mysql.escape(val);
-		},	
+		},
 
 		// Direct access to query
-		query: function (query, data, cb) {
+		query: function(query, data, cb) {
 			if (_.isFunction(data)) {
 				cb = data;
 				data = null;
 			}
-			spawnConnection(function (connection, cb) {
-				
+			spawnConnection(function(connection, cb) {
+
 				// Run query
 				if (data) connection.query(query, data, cb);
 				else connection.query(query, cb);
@@ -54,16 +55,15 @@ module.exports = (function () {
 		registerCollection: function(collection, cb) {
 			var self = this;
 
-			
+
 			// If the configuration in this collection corresponds 
 			// with a known database, reuse it the connection(s) to that db
-			dbs[collection.identity] = _.find(dbs, function (db) {
-				return	collection.host === db.host &&
-						collection.database === db.database;
+			dbs[collection.identity] = _.find(dbs, function(db) {
+				return collection.host === db.host && collection.database === db.database;
 			});
 
 			// Otherwise initialize for the first time
-			if ( !dbs[collection.identity] ) {
+			if (!dbs[collection.identity]) {
 
 				dbs[collection.identity] = marshalConfig(collection);
 
@@ -75,14 +75,12 @@ module.exports = (function () {
 					// Always make sure to keep a single connection tethered
 					// to prevent shutdowns due to not having any live connections 
 					// (hopefully this will be resolved in a subsequent release of node-mysql)
-					this.pool.getConnection(function (err, connection) {
+					this.pool.getConnection(function(err, connection) {
 						self.tether = connection;
 						cb();
 					});
-				}
-				else return cb();
-			}
-			else return cb();
+				} else return cb();
+			} else return cb();
 
 		},
 
@@ -105,14 +103,14 @@ module.exports = (function () {
 				var tableName = mysql.escapeId(collectionName);
 				var query = 'DESCRIBE ' + tableName;
 				connection.query(query, function __DESCRIBE__(err, schema) {
-					if(err) {
-						if(err.code === 'ER_NO_SUCH_TABLE') {
-							return cb ();
+					if (err) {
+						if (err.code === 'ER_NO_SUCH_TABLE') {
+							return cb();
 						} else return cb(err);
 					}
 
 					// Convert mysql format to standard javascript object
-					schema = _.reduce(schema, function (memo, field) {
+					schema = _.reduce(schema, function(memo, field) {
 
 						// TODO: do more stuff here to make this more intelligable
 						memo[field.Field] = field;
@@ -140,7 +138,7 @@ module.exports = (function () {
 
 				// Run query
 				connection.query(query, function __DEFINE__(err, result) {
-					if(err) return cb(err);
+					if (err) return cb(err);
 					cb(null, result);
 				});
 			}, dbs[collectionName], cb);
@@ -158,8 +156,8 @@ module.exports = (function () {
 
 				// Run query
 				connection.query(query, function __DROP__(err, result) {
-					if(err) {
-						if(err.code === 'ER_BAD_TABLE_ERROR') {
+					if (err) {
+						if (err.code === 'ER_BAD_TABLE_ERROR') {
 							result = null;
 						} else return cb(err);
 					}
@@ -186,7 +184,7 @@ module.exports = (function () {
 				// Run query
 				connection.query(query, function(err, result) {
 
-					if(err) return cb(err);
+					if (err) return cb(err);
 
 					// Build model to return
 					var model = _.extend({}, data, {
@@ -213,12 +211,56 @@ module.exports = (function () {
 				var query = 'SELECT * FROM ' + tableName + ' ';
 
 				query += sql.serializeOptions(collectionName, options);
-				
+
 				// Run query
 				connection.query(query, function(err, result) {
 					cb(err, result);
 				});
 			}, dbs[collectionName], cb);
+		},
+
+		// Stream one or more models from the collection
+		// using where, limit, skip, and order
+		// In where: handle `or`, `and`, and `like` queries
+		stream: function(collectionName, options, stream) {
+			spawnConnection(function(connection, cb) {
+
+				// Escape table name
+				var tableName = mysql.escapeId(collectionName);
+
+				// Build query
+				var query = 'SELECT * FROM ' + tableName + ' ';
+
+				query += sql.serializeOptions(collectionName, options);
+
+				// Run query
+				var dbStream = connection.query(query);
+
+				// Handle error, an 'end' event will be emitted after this as well
+				dbStream.on('error', function(err) {
+					stream.end(err); // End stream
+					cb(err); // Close connection
+				});
+
+				// the field packets for the rows to follow
+				dbStream.on('fields', function(fields) {
+
+				});
+
+				// Pausing the connnection is useful if your processing involves I/O
+				dbStream.on('result', function(row) {
+					connection.pause();
+					stream.write(row, function () {
+						connection.resume();
+					});
+				});
+
+				// all rows have been received
+				dbStream.on('end', function() {
+					stream.end(); // End stream
+					cb(); // Close connection
+				});
+			}, dbs[collectionName]);
 		},
 
 		// Update one or more models in the collection
@@ -303,7 +345,7 @@ module.exports = (function () {
 				return sql.where(collectionName, value, null, key);
 
 			}
-			
+
 			// Build escaped attr and value strings using either the key,
 			// or if one exists, the parent key
 			var attrStr, valueStr;
@@ -322,28 +364,25 @@ module.exports = (function () {
 				else if (key === '!' || key === 'not') {
 					if (value === null) return attrStr + 'IS NOT NULL';
 					else return attrStr + '<>' + valueStr;
-				}
-				else if (key === 'contains') return attrStr + ' LIKE %' + valueStr + '%';
+				} else if (key === 'contains') return attrStr + ' LIKE %' + valueStr + '%';
 				else if (key === 'startsWith') return attrStr + ' LIKE ' + valueStr + '%';
 				else if (key === 'endsWith') return attrStr + ' LIKE %' + valueStr;
-				else throw new Error ('Unknown comparator: ' + key);
-			}
-			else {
+				else throw new Error('Unknown comparator: ' + key);
+			} else {
 				attrStr = sql.prepareAttribute(collectionName, value, key);
 				valueStr = sql.prepareValue(collectionName, value, key);
 
 				// Special IS NULL case
-				if(_.isNull(value)) {
+				if (_.isNull(value)) {
 					return attrStr + " IS NULL";
-				} 
-				else return attrStr + "=" + valueStr;
+				} else return attrStr + "=" + valueStr;
 			}
 		},
 
 		prepareValue: function(collectionName, value, attrName) {
 
 			// Cast dates to SQL
-			if(_.isDate(value)) {
+			if (_.isDate(value)) {
 				value = toSqlDate(value);
 			}
 
@@ -370,40 +409,40 @@ module.exports = (function () {
 		predicate: function(collectionName, criterion, key, parentKey) {
 			var queryPart = '';
 
-			
+
 			if (parentKey) {
 				return sql.prepareCriterion(collectionName, criterion, key, parentKey);
 			}
 
 			// OR
-			if(key.toLowerCase() === 'or') {
+			if (key.toLowerCase() === 'or') {
 				queryPart = sql.build(collectionName, criterion, sql.where, ' OR ');
 				return ' ( ' + queryPart + ' ) ';
 			}
 
 			// AND
-			else if(key.toLowerCase() === 'and') {
+			else if (key.toLowerCase() === 'and') {
 				queryPart = sql.build(collectionName, criterion, sql.where, ' AND ');
 				return ' ( ' + queryPart + ' ) ';
 			}
 
 			// IN
-			else if(_.isArray(criterion)) {
+			else if (_.isArray(criterion)) {
 				queryPart = sql.prepareAttribute(collectionName, null, key) + " IN (" + sql.values(collectionName, criterion, key) + ")";
 				return queryPart;
 			}
 
 			// LIKE
-			else if(key.toLowerCase() === 'like') {
+			else if (key.toLowerCase() === 'like') {
 				return sql.build(collectionName, criterion, function(collectionName, value, attrName) {
 					var attrStr = sql.prepareAttribute(collectionName, value, attrName);
 
-					
+
 					// TODO: Handle regexp criterias
 					if (_.isRegExp(value)) {
 						throw new Error('RegExp LIKE criterias not supported by the MySQLAdapter yet.  Please contribute @ http://github.com/balderdashy/sails-mysql');
 					}
-					
+
 					var valueStr = sql.prepareValue(collectionName, value, attrName);
 
 					// Handle escaped percent (%) signs [encoded as %%%]
@@ -414,7 +453,7 @@ module.exports = (function () {
 			}
 
 			// NOT
-			else if(key.toLowerCase() === 'not') {
+			else if (key.toLowerCase() === 'not') {
 				throw new Error('NOT not supported yet!');
 			}
 
@@ -428,11 +467,11 @@ module.exports = (function () {
 		serializeOptions: function(collectionName, options) {
 			var queryPart = '';
 
-			if(options.where) {
+			if (options.where) {
 				queryPart += 'WHERE ' + sql.where(collectionName, options.where) + ' ';
 			}
 
-			if(options.sort) {
+			if (options.sort) {
 				queryPart += 'ORDER BY ';
 
 				// Sort through each sort attribute criteria
@@ -441,7 +480,7 @@ module.exports = (function () {
 					queryPart += sql.prepareAttribute(collectionName, null, attrName) + ' ';
 
 					// Basic MongoDB-style numeric sort direction
-					if(direction === 1) {
+					if (direction === 1) {
 						queryPart += 'ASC ';
 					} else {
 						queryPart += 'DESC ';
@@ -449,7 +488,7 @@ module.exports = (function () {
 				});
 			}
 
-			if(options.limit) {
+			if (options.limit) {
 				queryPart += 'LIMIT ' + options.limit + ' ';
 			} else {
 				// Some MySQL hackery here.  For details, see: 
@@ -457,10 +496,10 @@ module.exports = (function () {
 				queryPart += 'LIMIT 18446744073709551610 ';
 			}
 
-			if(options.skip) {
+			if (options.skip) {
 				queryPart += 'OFFSET ' + options.skip + ' ';
 			}
-			
+
 			return queryPart;
 		},
 
@@ -495,14 +534,15 @@ module.exports = (function () {
 
 	// Wrap a function in the logic necessary to provision a connection
 	// (either grab a free connection from the pool or create a new one)
+	// cb is optional (you might be streaming)
 	function spawnConnection(logic, config, cb) {
 
 
 		// Use a new connection each time
-		if( !adapter.defaults.pool ) {
+		if (!adapter.defaults.pool) {
 			var connection = mysql.createConnection(marshalConfig(config));
-			connection.connect(function (err) {
-				afterwards(err,connection);
+			connection.connect(function(err) {
+				afterwards(err, connection);
 			});
 		}
 
@@ -515,10 +555,10 @@ module.exports = (function () {
 
 		// Run logic using connection, then release/close it
 		function afterwards(err, connection) {
-			if(err) return cb(err);
+			if (err) return cb(err);
 			logic(connection, function(err, result) {
-				connection.end(function () {
-					cb(err, result);
+				connection.end(function() {
+					cb && cb(err, result);
 				});
 			});
 		}
@@ -526,44 +566,43 @@ module.exports = (function () {
 
 	// Convert standard adapter config 
 	// into a custom configuration object for node-mysql
-	function marshalConfig (config) {
+
+	function marshalConfig(config) {
 		return _.extend(config, {
-			host	: config.host,
-			user	: config.user,
+			host: config.host,
+			user: config.user,
 			password: config.password,
 			database: config.database
 		});
 	}
 
 	// Cast waterline types into SQL data types
+
 	function sqlTypeCast(type) {
 		type = type.toLowerCase();
 
-		switch(type) {
-		case 'string':
-			return 'TEXT';
+		switch (type) {
+			case 'string':
+				return 'TEXT';
 
-		case 'int':
-		case 'integer':
-			return 'INT';
+			case 'int':
+			case 'integer':
+				return 'INT';
 
-		case 'float':
-		case 'double':
-			return 'FLOAT';
+			case 'float':
+			case 'double':
+				return 'FLOAT';
 
-		case 'date':
-			return 'DATE';
+			case 'date':
+				return 'DATE';
 		}
 	}
 
 	// Return whether this criteria is valid as an object inside of an attribute
-	function validSubAttrCriteria (c) {
+
+	function validSubAttrCriteria(c) {
 		return _.isObject(c) && (
-			c.not || c.greaterThan || c.lessThan || 
-			c.greaterThanOrEqual || c.lessThanOrEqual ||
-			c['<'] || c['<='] || c['!'] || c['>'] || c['>='] ||
-			c.startsWith || c.endsWith || c.contains
-		);
+		c.not || c.greaterThan || c.lessThan || c.greaterThanOrEqual || c.lessThanOrEqual || c['<'] || c['<='] || c['!'] || c['>'] || c['>='] || c.startsWith || c.endsWith || c.contains);
 	}
 
 	return adapter;

@@ -29,7 +29,7 @@ module.exports = (function() {
 		defaults: {
 
 			// Pooling doesn't work yet, so it's off by default
-			pool: false
+			pool: true
 		},
 
 		escape: function(val) {
@@ -70,15 +70,16 @@ module.exports = (function() {
 				// Create the connection pool (if configured to do so)
 				// TODO: make this actually work
 				if (collection.pool) {
-					this.pool = mysql.createPool(marshalConfig(collection));
+					adapter.pool = mysql.createPool(marshalConfig(collection));
+					cb();
 
-					// Always make sure to keep a single connection tethered
-					// to prevent shutdowns due to not having any live connections 
-					// (hopefully this will be resolved in a subsequent release of node-mysql)
-					this.pool.getConnection(function(err, connection) {
-						self.tether = connection;
-						cb();
-					});
+					// // Always make sure to keep a single connection tethered
+					// // to prevent shutdowns due to not having any live connections 
+					// // (hopefully this will be resolved in a subsequent release of node-mysql)
+					// this.pool.getConnection(function(err, connection) {
+					// 	self.tether = connection;
+					// 	cb();
+					// });
 				} else return cb();
 			} else return cb();
 
@@ -539,19 +540,15 @@ module.exports = (function() {
 
 
 		// Use a new connection each time
-		if (!adapter.defaults.pool) {
+		if (!config.pool) {
 			var connection = mysql.createConnection(marshalConfig(config));
 			connection.connect(function(err) {
 				afterwards(err, connection);
 			});
 		}
 
-		// Use connection pooling (using the new stuff from the `pool` branch in felixge's node-mysql)
-		// (off by default)
-		else {
-			// TODO: make this actually work
-			adapter.pool.getConnection(afterwards);
-		}
+		// Use connection pooling
+		else adapter.pool.getConnection(afterwards);
 
 		// Run logic using connection, then release/close it
 		function afterwards(err, connection) {

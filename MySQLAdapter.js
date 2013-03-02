@@ -55,7 +55,6 @@ module.exports = (function() {
 		registerCollection: function(collection, cb) {
 			var self = this;
 
-
 			// If the configuration in this collection corresponds 
 			// with a known database, reuse it the connection(s) to that db
 			dbs[collection.identity] = _.find(dbs, function(db) {
@@ -71,15 +70,16 @@ module.exports = (function() {
 				// TODO: make this actually work
 				if (collection.pool) {
 					adapter.pool = mysql.createPool(marshalConfig(collection));
-					cb();
 
-					// // Always make sure to keep a single connection tethered
-					// // to prevent shutdowns due to not having any live connections 
-					// // (hopefully this will be resolved in a subsequent release of node-mysql)
-					// this.pool.getConnection(function(err, connection) {
-					// 	self.tether = connection;
-					// 	cb();
-					// });
+					// Always make sure to keep a single connection tethered
+					// to prevent shutdowns due to not having any live connections 
+					// (hopefully this will be resolved in a subsequent release of node-mysql)
+					adapter.pool.getConnection(function(err, connection) {
+						if (err) return cb(err);
+						else adapter.tether = connection;
+
+						cb();
+					});
 				} else return cb();
 			} else return cb();
 
@@ -251,7 +251,7 @@ module.exports = (function() {
 				// Pausing the connnection is useful if your processing involves I/O
 				dbStream.on('result', function(row) {
 					connection.pause();
-					stream.write(row, function () {
+					stream.write(row, function() {
 						connection.resume();
 					});
 				});
@@ -548,22 +548,62 @@ module.exports = (function() {
 		}
 
 		// Use connection pooling
-		else adapter.pool.getConnection(afterwards);
+		else {
+			adapter.pool.getConnection(afterwards);
+		}
 
 		// Run logic using connection, then release/close it
+
 		function afterwards(err, connection) {
-			if (err) return cb(err);
+			if (err) {
+				console.error("Error spawning mySQL connection:");
+				console.error(err);
+				return cb(err);
+			}
+
+			// console.log("Provisioned new connection.");
+			// handleDisconnect(connection, config);
+
 			logic(connection, function(err, result) {
-				connection.end(function() {
+				if (err) {
+					console.error("Logic error in mySQL ORM.");
+					console.error(err);
+				}
+				connection.end(function(err) {
+					if (err) {
+						console.error("MySQL connection killed with error:");
+						console.error(err);
+					}
 					cb && cb(err, result);
 				});
 			});
 		}
 	}
 
+	function handleDisconnect(connection, config) {
+		connection.on('error', function(err) {
+			// if (!err.fatal) {
+			// 	return;
+			// }
+
+			if (err.code !== 'PROTOCOL_CONNECTION_LOST') {
+				// throw err;
+			}
+
+			console.error('Re-connecting lost connection: ' + err.stack);
+			console.error(err);
+
+			
+			connection = mysql.createConnection(marshalConfig(config));
+			connection.connect();
+			// connection = mysql.createConnection(connection.config);
+			// handleDisconnect(connection);
+			// connection.connect();
+		});
+	}
+
 	// Convert standard adapter config 
 	// into a custom configuration object for node-mysql
-
 	function marshalConfig(config) {
 		return _.extend(config, {
 			host: config.host,

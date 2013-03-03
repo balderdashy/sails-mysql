@@ -169,18 +169,13 @@ module.exports = (function() {
 
 		// No custom alter necessary-- alter can be performed by using the other methods
 		// you probably want to use the default in waterline core since this can get complex
-		// (that is unless you want some enhanced functionality-- then please be our guest!)
+		// (that is unless you want some enhanced functionality-- then please be my guest!)
+
 		// Create one or more new models in the collection
 		create: function(collectionName, data, cb) {
 			spawnConnection(function(connection, cb) {
 
-
-				// Escape table name
-				var tableName = mysql.escapeId(collectionName);
-
-
-				// Build query
-				var query = 'INSERT INTO ' + tableName + ' ' + '(' + sql.attributes(collectionName, data) + ')' + ' VALUES (' + sql.values(collectionName, data) + ')';
+				var query = sql.insertQuery(collectionName, data);
 
 				// Run query
 				connection.query(query, function(err, result) {
@@ -199,19 +194,48 @@ module.exports = (function() {
 			}, dbs[collectionName], cb);
 		},
 
+		// Override of createEach to share a single connection
+		// instead of using a separate connection for each request
+		createEach: function (collectionName, valuesList, cb) {
+			spawnConnection(function(connection, cb) {
+				async.forEach(valuesList, function (data, cb) {
+
+					// Run query
+					var query = sql.insertQuery(collectionName, data) + '; ';
+					connection.query(query, function(err, results) {
+						if (err) return cb(err);
+						cb(err, results);
+					});
+				}, cb);
+
+
+				////////////////////////////////////////////////////////////////////////////////////
+				// node-mysql does not support multiple statements in a single query
+				// There are ways to fix this, but for now, using the more naive solution
+				////////////////////////////////////////////////////////////////////////////////////
+				// // Build giant query
+				// var query = '';
+				// _.each(valuesList, function (data) {
+				// 	query += sql.insertQuery(collectionName, data) + '; ';
+				// });
+
+				// // Run query
+				// connection.query(query, function(err, results) {
+				// 	if (err) return cb(err);
+				// 	cb(err, results);
+				// });
+
+			}, dbs[collectionName], cb);
+		},
+
 		// Find one or more models from the collection
 		// using where, limit, skip, and order
 		// In where: handle `or`, `and`, and `like` queries
 		find: function(collectionName, options, cb) {
 			spawnConnection(function(connection, cb) {
 
-				// Escape table name
-				var tableName = mysql.escapeId(collectionName);
-
-				// Build query
-				var query = 'SELECT * FROM ' + tableName + ' ';
-
-				query += sql.serializeOptions(collectionName, options);
+				// Build find query
+				var query = sql.selectQuery(collectionName, options);
 
 				// Run query
 				connection.query(query, function(err, result) {
@@ -226,13 +250,8 @@ module.exports = (function() {
 		stream: function(collectionName, options, stream) {
 			spawnConnection(function(connection, cb) {
 
-				// Escape table name
-				var tableName = mysql.escapeId(collectionName);
-
-				// Build query
-				var query = 'SELECT * FROM ' + tableName + ' ';
-
-				query += sql.serializeOptions(collectionName, options);
+				// Build find query
+				var query = sql.selectQuery(collectionName, options);
 
 				// Run query
 				var dbStream = connection.query(query);
@@ -244,9 +263,7 @@ module.exports = (function() {
 				});
 
 				// the field packets for the rows to follow
-				dbStream.on('fields', function(fields) {
-
-				});
+				dbStream.on('fields', function(fields) {});
 
 				// Pausing the connnection is useful if your processing involves I/O
 				dbStream.on('result', function(row) {
@@ -314,6 +331,23 @@ module.exports = (function() {
 	////////////// Private Methods //////////////////////////////////////////
 	//////////////                 //////////////////////////////////////////
 	var sql = {
+
+		selectQuery: function (collectionName, options) {
+			// Escape table name
+			var tableName = mysql.escapeId(collectionName);
+
+			// Build query
+			return 'SELECT * FROM ' + tableName + ' ' + sql.serializeOptions(collectionName, options);
+		},
+
+		insertQuery: function (collectionName, data) {
+			// Escape table name
+			var tableName = mysql.escapeId(collectionName);
+
+			// Build query
+			return 'INSERT INTO ' + tableName + ' ' + '(' + sql.attributes(collectionName, data) + ')' + ' VALUES (' + sql.values(collectionName, data) + ')';
+		},
+
 		// Create a schema csv for a DDL query
 		schema: function(collectionName, attributes) {
 			return sql.build(collectionName, attributes, sql._schema);

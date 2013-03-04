@@ -402,7 +402,9 @@ module.exports = (function() {
 				else if (key === '!' || key === 'not') {
 					if (value === null) return attrStr + 'IS NOT NULL';
 					else return attrStr + '<>' + valueStr;
-				} else if (key === 'contains') return attrStr + ' LIKE \'%' + nakedButClean + '%\'';
+				} 
+				else if (key === 'like') return attrStr + ' LIKE \'' + nakedButClean + '\'';
+				else if (key === 'contains') return attrStr + ' LIKE \'%' + nakedButClean + '%\'';
 				else if (key === 'startsWith') return attrStr + ' LIKE \'' + nakedButClean + '%\'';
 				else if (key === 'endsWith') return attrStr + ' LIKE \'%' + nakedButClean + '\'';
 				else throw new Error('Unknown comparator: ' + key);
@@ -673,10 +675,9 @@ module.exports = (function() {
 	}
 
 	// Return whether this criteria is valid as an object inside of an attribute
-
 	function validSubAttrCriteria(c) {
 		return _.isObject(c) && (
-		c.not || c.greaterThan || c.lessThan || c.greaterThanOrEqual || c.lessThanOrEqual || c['<'] || c['<='] || c['!'] || c['>'] || c['>='] || c.startsWith || c.endsWith || c.contains);
+		c.not || c.greaterThan || c.lessThan || c.greaterThanOrEqual || c.lessThanOrEqual || c['<'] || c['<='] || c['!'] || c['>'] || c['>='] || c.startsWith || c.endsWith || c.contains || c.like);
 	}
 
 	return adapter;

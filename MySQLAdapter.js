@@ -392,6 +392,9 @@ module.exports = (function() {
 				attrStr = sql.prepareAttribute(collectionName, value, parentKey);
 				valueStr = sql.prepareValue(collectionName, value, parentKey);
 
+				// Why don't we strip you out of those bothersome apostrophes?
+				var nakedButClean = _.str.trim(valueStr,'\'');
+
 				if (key === '<' || key === 'lessThan') return attrStr + '<' + valueStr;
 				else if (key === '<=' || key === 'lessThanOrEqual') return attrStr + '<=' + valueStr;
 				else if (key === '>' || key === 'greaterThan') return attrStr + '>' + valueStr;
@@ -399,9 +402,9 @@ module.exports = (function() {
 				else if (key === '!' || key === 'not') {
 					if (value === null) return attrStr + 'IS NOT NULL';
 					else return attrStr + '<>' + valueStr;
-				} else if (key === 'contains') return attrStr + ' LIKE %' + valueStr + '%';
-				else if (key === 'startsWith') return attrStr + ' LIKE ' + valueStr + '%';
-				else if (key === 'endsWith') return attrStr + ' LIKE %' + valueStr;
+				} else if (key === 'contains') return attrStr + ' LIKE \'%' + nakedButClean + '%\'';
+				else if (key === 'startsWith') return attrStr + ' LIKE \'' + nakedButClean + '%\'';
+				else if (key === 'endsWith') return attrStr + ' LIKE \'%' + nakedButClean + '\'';
 				else throw new Error('Unknown comparator: ' + key);
 			} else {
 				attrStr = sql.prepareAttribute(collectionName, value, key);

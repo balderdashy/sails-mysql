@@ -211,7 +211,7 @@ module.exports = (function() {
 
 				////////////////////////////////////////////////////////////////////////////////////
 				// node-mysql does not support multiple statements in a single query
-				// There are ways to fix this, but for now, using the more naive solution
+				// There are ways to fix this, but for now, we're using the more naive solution
 				////////////////////////////////////////////////////////////////////////////////////
 				// // Build giant query
 				// var query = '';
@@ -625,7 +625,7 @@ module.exports = (function() {
 			// 	return;
 			// }
 
-			if (err.code !== 'PROTOCOL_CONNECTION_LOST') {
+			if (!err || err.code !== 'PROTOCOL_CONNECTION_LOST') {
 				// throw err;
 			}
 

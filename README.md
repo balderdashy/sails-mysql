@@ -5,7 +5,7 @@
 Adds MySQL support for Sails.
 
 # Sails.js Repo
-http://SailsJs.com
+http://SailsJs.org
 
 
 ## About Waterline

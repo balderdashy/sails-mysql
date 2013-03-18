@@ -671,6 +671,12 @@ module.exports = (function() {
 
 			case 'date':
 				return 'DATE';
+		
+			case 'datetime':
+				return 'DATETIME';
+
+			default:
+				throw "Unregistered type given: " + type;
 		}
 	}
 

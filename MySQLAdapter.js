@@ -111,12 +111,7 @@ module.exports = (function() {
 					}
 
 					// Convert mysql format to standard javascript object
-					schema = _.reduce(schema, function(memo, field) {
-
-						// TODO: do more stuff here to make this more intelligable
-						memo[field.Field] = field;
-						return memo;
-					}, {});
+					schema = sql.normalizeSchema(schema);
 
 					// TODO: check that what was returned actually matches the cache
 					cb(null, schema);
@@ -171,12 +166,15 @@ module.exports = (function() {
 		addAttribute: function (collectionName, attrName, attrDef, cb) {
 			spawnConnection(function(connection, cb) {
 				var query = sql.addColumn(collectionName, attrName, attrDef);
+
+				sails.log.verbose("ADD COLUMN QUERY ",query);
+				
 				// Run query
 				connection.query(query, function(err, result) {
 					if (err) return cb(err);
 
 					// TODO: marshal response to waterline interface
-					cb(err,model);
+					cb(err);
 				});
 
 			}, dbs[collectionName], cb);
@@ -187,12 +185,14 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 				var query = sql.removeColumn(collectionName, attrName);
 
+				sails.log.verbose("REMOVE COLUMN QUERY ",query);
+
 				// Run query
 				connection.query(query, function(err, result) {
 					if (err) return cb(err);
 
 					// TODO: marshal response to waterline interface
-					cb(err,model);
+					cb(err);
 				});
 
 			}, dbs[collectionName], cb);
@@ -366,15 +366,37 @@ module.exports = (function() {
 	//////////////                 //////////////////////////////////////////
 	var sql = {
 
+		// Convert mysql format to standard javascript object
+		normalizeSchema: function (schema) {
+			return _.reduce(schema, function(memo, field) {
+
+				// Marshal mysql DESCRIBE to waterline collection semantics
+				var attrName = field.Field;
+				var type = field.Type;
+
+				// Remove (n) column-size indicators
+				type = type.replace(/\([0-9]+\)$/,'');
+
+				memo[attrName] = {
+					type: type,
+					defaultsTo: field.Default,
+					autoIncrement: field.Extra === 'auto_increment'
+				};
+				return memo;
+			}, {});
+		},
+
 		// @returns ALTER query for adding a column
 		addColumn: function (collectionName, attrName, attrDef) {
 			// Escape table name and attribute name
 			var tableName = mysql.escapeId(collectionName);
 
-			// Build column definition
-			var columnDefinition = sql._schema(collectionName, attrName, attrDef);
+			sails.log.verbose("ADDING ",attrName, "with",attrDef);
 
-			return 'ALTER ' + tableName + ' ADD ' + columnDefinition;
+			// Build column definition
+			var columnDefinition = sql._schema(collectionName, attrDef, attrName);
+
+			return 'ALTER TABLE ' + tableName + ' ADD ' + columnDefinition;
 		},
 
 		// @returns ALTER query for dropping a column
@@ -383,7 +405,7 @@ module.exports = (function() {
 			var tableName = mysql.escapeId(collectionName);
 			attrName = mysql.escapeId(attrName);
 
-			return 'ALTER ' + tableName + ' DROP COLUMN ' + attrName;
+			return 'ALTER TABLE ' + tableName + ' DROP COLUMN ' + attrName;
 		},
 
 		selectQuery: function (collectionName, options) {
@@ -409,7 +431,8 @@ module.exports = (function() {
 		_schema: function(collectionName, attribute, attrName) {
 			attrName = mysql.escapeId(attrName);
 			var type = sqlTypeCast(attribute.type);
-			return attrName + ' ' + type + ' ' + (attribute.autoIncrement ? 'NOT NULL AUTO_INCREMENT, ' + 'PRIMARY KEY(' + attrName + ')' : '');
+			// return attrName + ' ' + type + ' ' + (attribute.autoIncrement ? 'NOT NULL AUTO_INCREMENT, ' + 'PRIMARY KEY(' + attrName + ')' : '');
+			return attrName + ' ' + type + ' ' + (attribute.autoIncrement ? 'NOT NULL AUTO_INCREMENT PRIMARY KEY' : '');
 		},
 
 		// Create an attribute csv for a DQL query
@@ -707,12 +730,12 @@ module.exports = (function() {
 	}
 
 	// Cast waterline types into SQL data types
-
 	function sqlTypeCast(type) {
-		type = type.toLowerCase();
+		type = type && type.toLowerCase();
 
 		switch (type) {
 			case 'string':
+			case 'text':
 				return 'TEXT';
 
 			case 'boolean':

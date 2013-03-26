@@ -167,7 +167,17 @@ module.exports = (function() {
 			}, dbs[collectionName], cb);
 		},
 
-		// No custom alter necessary-- alter can be performed by using the other methods
+		//
+		addAttribute: function (collectionName) {
+
+		},
+
+		//
+		removeAttribute: function (collectionName) {
+
+		},
+
+		// No custom alter necessary-- alter can be performed by using the other methods (addAttribute, removeAttribute)
 		// you probably want to use the default in waterline core since this can get complex
 		// (that is unless you want some enhanced functionality-- then please be my guest!)
 

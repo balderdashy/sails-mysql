@@ -168,13 +168,34 @@ module.exports = (function() {
 		},
 
 		//
-		addAttribute: function (collectionName) {
+		addAttribute: function (collectionName, attrName, attrDef, cb) {
+			spawnConnection(function(connection, cb) {
+				var query = sql.addColumn(collectionName, attrName, attrDef);
+				// Run query
+				connection.query(query, function(err, result) {
+					if (err) return cb(err);
 
+					// TODO: marshal response to waterline interface
+					cb(err,model);
+				});
+
+			}, dbs[collectionName], cb);
 		},
 
 		//
-		removeAttribute: function (collectionName) {
+		removeAttribute: function (collectionName, attrName, cb) {
+			spawnConnection(function(connection, cb) {
+				var query = sql.removeColumn(collectionName, attrName);
 
+				// Run query
+				connection.query(query, function(err, result) {
+					if (err) return cb(err);
+
+					// TODO: marshal response to waterline interface
+					cb(err,model);
+				});
+
+			}, dbs[collectionName], cb);
 		},
 
 		// No custom alter necessary-- alter can be performed by using the other methods (addAttribute, removeAttribute)
@@ -222,6 +243,9 @@ module.exports = (function() {
 				////////////////////////////////////////////////////////////////////////////////////
 				// node-mysql does not support multiple statements in a single query
 				// There are ways to fix this, but for now, we're using the more naive solution
+				//
+				// Here's what doing it w/ multiple statements/single query would look like, roughly:
+				//
 				////////////////////////////////////////////////////////////////////////////////////
 				// // Build giant query
 				// var query = '';
@@ -341,6 +365,26 @@ module.exports = (function() {
 	////////////// Private Methods //////////////////////////////////////////
 	//////////////                 //////////////////////////////////////////
 	var sql = {
+
+		// @returns ALTER query for adding a column
+		addColumn: function (collectionName, attrName, attrDef) {
+			// Escape table name and attribute name
+			var tableName = mysql.escapeId(collectionName);
+
+			// Build column definition
+			var columnDefinition = sql._schema(collectionName, attrName, attrDef);
+
+			return 'ALTER ' + tableName + ' ADD ' + columnDefinition;
+		},
+
+		// @returns ALTER query for dropping a column
+		removeColumn: function (collectionName, attrName) {
+			// Escape table name and attribute name
+			var tableName = mysql.escapeId(collectionName);
+			attrName = mysql.escapeId(attrName);
+
+			return 'ALTER ' + tableName + ' DROP COLUMN ' + attrName;
+		},
 
 		selectQuery: function (collectionName, options) {
 			// Escape table name

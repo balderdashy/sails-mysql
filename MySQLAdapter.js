@@ -661,6 +661,7 @@ module.exports = (function() {
 			case 'string':
 				return 'TEXT';
 
+			case 'boolean':
 			case 'int':
 			case 'integer':
 				return 'INT';
@@ -676,7 +677,8 @@ module.exports = (function() {
 				return 'DATETIME';
 
 			default:
-				throw "Unregistered type given: " + type;
+				console.error("Unregistered type given: " + type);
+				return "TEXT";
 		}
 	}
 

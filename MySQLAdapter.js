@@ -39,19 +39,25 @@ module.exports = (function() {
 			return mysql.escape(val);
 		},
 
+		escapeId: function(name) {
+			return mysql.escapeId(name);
+		},
+
 		// Direct access to query
-		query: function(query, data, cb) {
+		query: function(collectionName, query, data, cb) {
 			if (_.isFunction(data)) {
 				cb = data;
 				data = null;
 			}
 			spawnConnection(function(connection, cb) {
 
+				console.log("QUERY",query,data);
+
 				// Run query
 				if (data) connection.query(query, data, cb);
 				else connection.query(query, cb);
 
-			}, cb);
+			}, dbs[collectionName], cb);
 		},
 
 		// Initialize the underlying data model
@@ -332,6 +338,7 @@ module.exports = (function() {
 
 				// Run query
 				connection.query(query, function(err, result) {
+					if (err) return cb(err);
 					cb(err, result);
 				});
 			}, dbs[collectionName], cb);
@@ -404,13 +411,14 @@ module.exports = (function() {
 				if (err) {
 					console.error("Logic error in mySQL ORM.");
 					console.error(err);
+					return cb && cb(err);
 				}
 				connection.end(function(err) {
 					if (err) {
 						console.error("MySQL connection killed with error:");
 						console.error(err);
 					}
-					cb && cb(err, result);
+					return cb && cb(err, result);
 				});
 			});
 		}

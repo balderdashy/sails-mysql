@@ -51,8 +51,6 @@ module.exports = (function() {
 			}
 			spawnConnection(function(connection, cb) {
 
-				console.log("QUERY",query,data);
-
 				// Run query
 				if (data) connection.query(query, data, cb);
 				else connection.query(query, cb);

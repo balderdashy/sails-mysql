@@ -1,4 +1,6 @@
 var mysql = require('mysql');
+var _ = require('underscore');
+_.str = require('underscore.string');
 
 var sql = {
 

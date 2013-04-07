@@ -24,6 +24,6 @@
     "async": "0.1.22",
     "underscore": "1.4.3",
     "underscore.string": "2.3.1",
-    "mysql": "2.0.0-alpha7"
+    "mysql": "git://github.com/felixge/node-mysql.git"
   }
 }

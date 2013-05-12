@@ -62,6 +62,11 @@ module.exports = (function() {
 		registerCollection: function(collection, cb) {
 			var self = this;
 
+			// Add tableName to collection
+			// Use both prefix and identity to define tableName
+			// Note that a non-string prefix values are problematic (such as 0 or true)
+			collection.tableName = (collection.prefix || '') + collection.identity;
+
 			// If the configuration in this collection corresponds 
 			// with a known database, reuse it the connection(s) to that db
 			dbs[collection.identity] = _.find(dbs, function(db) {
@@ -108,7 +113,7 @@ module.exports = (function() {
 		describe: function(collectionName, cb) {
 			var self = this;
 			spawnConnection(function __DESCRIBE__(connection, cb) {
-				var tableName = mysql.escapeId(collectionName);
+				var tableName = mysql.escapeId(dbs[collectionName].tableName);
 				var query = 'DESCRIBE ' + tableName;
 				connection.query(query, function __DESCRIBE__(err, schema) {
 					if (err) {
@@ -131,7 +136,7 @@ module.exports = (function() {
 			spawnConnection(function __DEFINE__(connection, cb) {
 
 				// Escape table name
-				collectionName = mysql.escapeId(collectionName);
+				collectionName = mysql.escapeId(dbs[collectionName].tableName);
 
 				// Iterate through each attribute, building a query string
 				var $schema = sql.schema(collectionName, definition.attributes);
@@ -152,7 +157,7 @@ module.exports = (function() {
 			spawnConnection(function __DROP__(connection, cb) {
 
 				// Escape table name
-				collectionName = mysql.escapeId(collectionName);
+				collectionName = mysql.escapeId(dbs[collectionName].tableName);
 
 				// Build query
 				var query = 'DROP TABLE ' + collectionName;
@@ -172,7 +177,7 @@ module.exports = (function() {
 		//
 		addAttribute: function (collectionName, attrName, attrDef, cb) {
 			spawnConnection(function(connection, cb) {
-				var query = sql.addColumn(collectionName, attrName, attrDef);
+				var query = sql.addColumn(dbs[collectionName].tableName, attrName, attrDef);
 
 				sails.log.verbose("ADD COLUMN QUERY ",query);
 				
@@ -190,7 +195,7 @@ module.exports = (function() {
 		//
 		removeAttribute: function (collectionName, attrName, cb) {
 			spawnConnection(function(connection, cb) {
-				var query = sql.removeColumn(collectionName, attrName);
+				var query = sql.removeColumn(dbs[collectionName].tableName, attrName);
 
 				sails.log.verbose("REMOVE COLUMN QUERY ",query);
 
@@ -213,7 +218,7 @@ module.exports = (function() {
 		create: function(collectionName, data, cb) {
 			spawnConnection(function(connection, cb) {
 
-				var query = sql.insertQuery(collectionName, data);
+				var query = sql.insertQuery(dbs[collectionName].tableName, data);
 
 				// Run query
 				connection.query(query, function(err, result) {
@@ -239,7 +244,7 @@ module.exports = (function() {
 				async.forEach(valuesList, function (data, cb) {
 
 					// Run query
-					var query = sql.insertQuery(collectionName, data) + '; ';
+					var query = sql.insertQuery(dbs[collectionName].tableName, data) + '; ';
 					connection.query(query, function(err, results) {
 						if (err) return cb(err);
 						cb(err, results);
@@ -257,7 +262,7 @@ module.exports = (function() {
 				// // Build giant query
 				// var query = '';
 				// _.each(valuesList, function (data) {
-				// 	query += sql.insertQuery(collectionName, data) + '; ';
+				// 	query += sql.insertQuery(dbs[collectionName].tableName, data) + '; ';
 				// });
 
 				// // Run query
@@ -276,7 +281,7 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 
 				// Build find query
-				var query = sql.selectQuery(collectionName, options);
+				var query = sql.selectQuery(dbs[collectionName].tableName, options);
 
 				// Run query
 				connection.query(query, function(err, result) {
@@ -292,7 +297,7 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 
 				// Build find query
-				var query = sql.selectQuery(collectionName, options);
+				var query = sql.selectQuery(dbs[collectionName].tableName, options);
 
 				// Run query
 				var dbStream = connection.query(query);
@@ -327,12 +332,12 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 
 				// Escape table name
-				var tableName = mysql.escapeId(collectionName);
+				var tableName = mysql.escapeId(dbs[collectionName].tableName);
 
 				// Build query
-				var query = 'UPDATE ' + tableName + ' SET ' + sql.criteria(collectionName, values) + ' ';
+				var query = 'UPDATE ' + tableName + ' SET ' + sql.criteria(dbs[collectionName].tableName, values) + ' ';
 
-				query += sql.serializeOptions(collectionName, options);
+				query += sql.serializeOptions(dbs[collectionName].tableName, options);
 
 				// Run query
 				connection.query(query, function(err, result) {
@@ -347,12 +352,12 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 
 				// Escape table name
-				var tableName = mysql.escapeId(collectionName);
+				var tableName = mysql.escapeId(dbs[collectionName].tableName);
 
 				// Build query
 				var query = 'DELETE FROM ' + tableName + ' ';
 
-				query += sql.serializeOptions(collectionName, options);
+				query += sql.serializeOptions(dbs[collectionName].tableName, options);
 
 				// Run query
 				connection.query(query, function(err, result) {

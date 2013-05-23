@@ -342,7 +342,13 @@ module.exports = (function() {
 				// Run query
 				connection.query(query, function(err, result) {
 					if (err) return cb(err);
-					cb(err, result);
+
+					//the update was successful, select the updated records
+					adapter.find(collectionName, options, function(err, models) {
+						if (err) return cb(err);
+
+						cb(err, models);
+					});
 				});
 			}, dbs[collectionName], cb);
 		},

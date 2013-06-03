@@ -269,35 +269,31 @@ module.exports = (function() {
 		// instead of using a separate connection for each request
 		createEach: function (collectionName, valuesList, cb) {
 			spawnConnection(function(connection, cb) {
-				async.forEach(valuesList, function (data, cb) {
+
+				var records = [];
+
+				async.eachSeries(valuesList, function (data, cb) {
 
 					// Run query
 					var query = sql.insertQuery(dbs[collectionName].tableName, data) + '; ';
+
 					connection.query(query, function(err, results) {
 						if (err) return cb(err);
-						cb(err, results);
+						records.push(results.insertId);
+						cb();
 					});
-				}, cb);
+				}, function(err) {
+					if(err) return cb(err);
 
+					// Build a Query to get newly inserted records
+					var query = "SELECT * FROM " + dbs[collectionName].tableName + " WHERE id IN (" + records + ");";
 
-				////////////////////////////////////////////////////////////////////////////////////
-				// node-mysql does not support multiple statements in a single query
-				// There are ways to fix this, but for now, we're using the more naive solution
-				//
-				// Here's what doing it w/ multiple statements/single query would look like, roughly:
-				//
-				////////////////////////////////////////////////////////////////////////////////////
-				// // Build giant query
-				// var query = '';
-				// _.each(valuesList, function (data) {
-				// 	query += sql.insertQuery(dbs[collectionName].tableName, data) + '; ';
-				// });
-
-				// // Run query
-				// connection.query(query, function(err, results) {
-				// 	if (err) return cb(err);
-				// 	cb(err, results);
-				// });
+					// Run Query returing results
+					connection.query(query, function(err, results) {
+						if(err) return cb(err);
+						cb(null, results);
+					});
+				});
 
 			}, dbs[collectionName], cb);
 		},

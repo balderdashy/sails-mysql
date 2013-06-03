@@ -414,7 +414,20 @@ module.exports = (function() {
 
 				// Run query
 				connection.query(query, function(err, result) {
-					cb(err, result);
+
+					var resultArray = [];
+
+					// Normalize Result Array
+					if(Array.isArray(result)) {
+						result.forEach(function(value) {
+							resultArray.push(value.insertId);
+						});
+
+						return cb(null, resultArray);
+					}
+
+					resultArray.push(result.insertId);
+					cb(err, resultArray);
 				});
 			}, dbs[collectionName], cb);
 		},

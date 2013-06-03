@@ -62,20 +62,9 @@ module.exports = (function() {
 		registerCollection: function(collection, cb) {
 			var self = this;
 
-			// Add tableName to collection
-			// Use both prefix and identity to define tableName
-			// Note that a non-string prefix values are problematic (such as 0 or true)
-			collection.tableName = (collection.prefix || '') + collection.identity;
+			collection.tableName = collection.identity;
 
-			// If the configuration in this collection corresponds 
-			// with a known database, reuse it the connection(s) to that db
-			dbs[collection.identity] = _.find(dbs, function(db) {
-				return collection.host === db.host && collection.database === db.database;
-			});
-
-			// Otherwise initialize for the first time
-			if (!dbs[collection.identity]) {
-
+			if(!dbs[collection.identity]) {
 				dbs[collection.identity] = marshalConfig(collection);
 
 				// Create the connection pool (if configured to do so)

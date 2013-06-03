@@ -358,21 +358,44 @@ module.exports = (function() {
 				// Escape table name
 				var tableName = mysql.escapeId(dbs[collectionName].tableName);
 
-				// Build query
-				var query = 'UPDATE ' + tableName + ' SET ' + sql.criteria(dbs[collectionName].tableName, values) + ' ';
+				// Find the record before updating it
+				var criteria = sql.serializeOptions(dbs[collectionName].tableName, options);
 
-				query += sql.serializeOptions(dbs[collectionName].tableName, options);
+				var query = 'SELECT id FROM ' + tableName + ' ' + criteria;
 
-				// Run query
-				connection.query(query, function(err, result) {
-					if (err) return cb(err);
+				connection.query(query, function(err, results) {
+					if(err) return cb(err);
 
-					//the update was successful, select the updated records
-					adapter.find(collectionName, options, function(err, models) {
+					var ids = [];
+
+					results.forEach(function(result) {
+						ids.push(result.id);
+					});
+
+					// Build query
+					var query = 'UPDATE ' + tableName + ' SET ' + sql.criteria(dbs[collectionName].tableName, values) + ' ';
+
+					query += sql.serializeOptions(dbs[collectionName].tableName, options);
+
+					// Run query
+					connection.query(query, function(err, result) {
 						if (err) return cb(err);
 
-						cb(err, models);
+						var criteria;
+
+						if(ids.length === 1) {
+							criteria = { where: { id: ids[0] }, limit: 1 };
+						} else {
+							criteria = { where: { id: ids }};
+						}
+
+						// the update was successful, select the updated records
+						adapter.find(collectionName, criteria, function(err, models) {
+							if (err) return cb(err);
+							cb(err, models);
+						});
 					});
+
 				});
 			}, dbs[collectionName], cb);
 		},

@@ -42,7 +42,7 @@ var sql = {
 		// Escape table name and attribute name
 		var tableName = mysql.escapeId(collectionName);
 
-		sails.log.verbose("ADDING ",attrName, "with",attrDef);
+		// sails.log.verbose("ADDING ",attrName, "with",attrDef);
 
 		// Build column definition
 		var columnDefinition = sql._schema(collectionName, attrDef, attrName);

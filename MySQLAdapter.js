@@ -207,8 +207,8 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 				var query = sql.addColumn(dbs[collectionName].tableName, attrName, attrDef);
 
-				sails.log.verbose("ADD COLUMN QUERY ",query);
-				
+				// sails.log.verbose("ADD COLUMN QUERY ",query);
+
 				// Run query
 				connection.query(query, function(err, result) {
 					if (err) return cb(err);
@@ -225,7 +225,7 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 				var query = sql.removeColumn(dbs[collectionName].tableName, attrName);
 
-				sails.log.verbose("REMOVE COLUMN QUERY ",query);
+				// sails.log.verbose("REMOVE COLUMN QUERY ",query);
 
 				// Run query
 				connection.query(query, function(err, result) {

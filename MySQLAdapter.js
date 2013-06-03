@@ -101,9 +101,14 @@ module.exports = (function() {
 		// (contains attributes and autoIncrement value)
 		describe: function(collectionName, cb) {
 			var self = this;
+
 			spawnConnection(function __DESCRIBE__(connection, cb) {
+
 				var tableName = mysql.escapeId(dbs[collectionName].tableName);
+
 				var query = 'DESCRIBE ' + tableName;
+				var pkQuery = "SHOW INDEX FROM " + tableName + ";";
+
 				connection.query(query, function __DESCRIBE__(err, schema) {
 					if (err) {
 						if (err.code === 'ER_NO_SUCH_TABLE') {
@@ -111,11 +116,45 @@ module.exports = (function() {
 						} else return cb(err);
 					}
 
-					// Convert mysql format to standard javascript object
-					schema = sql.normalizeSchema(schema);
+					connection.query(pkQuery, function(err, pkResult) {
+						if(err) return cb(err);
 
-					// TODO: check that what was returned actually matches the cache
-					cb(null, schema);
+						// Loop through Schema and attach extra attributes
+						schema.forEach(function(attr) {
+
+							// Set Primary Key Attribute
+							if(attr.Key === 'PRI') {
+								attr.primaryKey = true;
+
+								// If also an integer set auto increment attribute
+								if(attr.Type === 'int(11)') {
+									attr.autoIncrement = true;
+								}
+							}
+
+							// Set Unique Attribute
+							if(attr.Key === 'UNI') {
+								attr.unique = true;
+							}
+						});
+
+						// Loop Through Indexes and Add Properties
+						pkResult.forEach(function(result) {
+							schema.forEach(function(attr) {
+								if(attr.Field !== result.Column_name) return;
+								attr.indexed = true;
+							});
+						});
+
+						// Convert mysql format to standard javascript object
+						schema = sql.normalizeSchema(schema);
+
+						// TODO: check that what was returned actually matches the cache
+						cb(null, schema);
+
+					});
+
+
 				});
 			}, dbs[collectionName], cb);
 		},

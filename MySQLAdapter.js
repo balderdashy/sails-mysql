@@ -167,10 +167,10 @@ module.exports = (function() {
 				collectionName = mysql.escapeId(dbs[collectionName].tableName);
 
 				// Iterate through each attribute, building a query string
-				var $schema = sql.schema(collectionName, definition.attributes);
+				var schema = sql.schema(collectionName, definition);
 
 				// Build query
-				var query = 'CREATE TABLE ' + collectionName + ' (' + $schema + ')';
+				var query = 'CREATE TABLE ' + collectionName + ' (' + schema + ')';
 
 				// Run query
 				connection.query(query, function __DEFINE__(err, result) {

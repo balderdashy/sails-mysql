@@ -20,6 +20,19 @@ var sql = {
 				defaultsTo: field.Default,
 				autoIncrement: field.Extra === 'auto_increment'
 			};
+
+			if(field.primaryKey) {
+				memo[attrName].primaryKey = field.primaryKey;
+			}
+
+			if(field.unique) {
+				memo[attrName].unique = field.unique;
+			}
+
+			if(field.indexed) {
+				memo[attrName].indexed = field.indexed;
+			}
+
 			return memo;
 		}, {});
 	},
@@ -29,7 +42,7 @@ var sql = {
 		// Escape table name and attribute name
 		var tableName = mysql.escapeId(collectionName);
 
-		sails.log.verbose("ADDING ",attrName, "with",attrDef);
+		// sails.log.verbose("ADDING ",attrName, "with",attrDef);
 
 		// Build column definition
 		var columnDefinition = sql._schema(collectionName, attrDef, attrName);
@@ -69,8 +82,25 @@ var sql = {
 	_schema: function(collectionName, attribute, attrName) {
 		attrName = mysql.escapeId(attrName);
 		var type = sqlTypeCast(attribute.type);
-		// return attrName + ' ' + type + ' ' + (attribute.autoIncrement ? 'NOT NULL AUTO_INCREMENT, ' + 'PRIMARY KEY(' + attrName + ')' : '');
-		return attrName + ' ' + type + ' ' + (attribute.autoIncrement ? 'NOT NULL AUTO_INCREMENT PRIMARY KEY' : '');
+
+		// Process PK field
+		if(attribute.primaryKey) {
+
+			// If type is an integer, set auto increment
+			if(type === 'INT') {
+				return attrName + ' ' + type + ' NOT NULL AUTO_INCREMENT PRIMARY KEY';
+			}
+
+			// Just set NOT NULL on other types
+			return attrName + ' VARCHAR(255) NOT NULL PRIMARY KEY';
+		}
+
+		// Process UNIQUE field
+		if(attribute.unique) {
+			return attrName + ' ' + type + ' UNIQUE KEY';
+		}
+
+		return attrName + ' ' + type + ' ';
 	},
 
 	// Create an attribute csv for a DQL query
@@ -284,6 +314,8 @@ function sqlTypeCast(type) {
 
 	switch (type) {
 		case 'string':
+			return 'VARCHAR(255)';
+
 		case 'text':
 			return 'TEXT';
 
@@ -298,7 +330,7 @@ function sqlTypeCast(type) {
 
 		case 'date':
 			return 'DATE';
-	
+
 		case 'datetime':
 			return 'DATETIME';
 
@@ -313,7 +345,15 @@ function wrapInQuotes(val) {
 }
 
 function toSqlDate(date) {
-	return [[date.getFullYear(), ((date.getMonth() < 9 ? '0' : '') + (date.getMonth() + 1)), ((date.getDate() < 10 ? '0' : '') + date.getDate())].join("-"), date.toLocaleTimeString()].join(" ");
+
+	date = date.getUTCFullYear() + '-' +
+		('00' + (date.getUTCMonth()+1)).slice(-2) + '-' +
+		('00' + date.getUTCDate()).slice(-2) + ' ' +
+		('00' + date.getUTCHours()).slice(-2) + ':' +
+		('00' + date.getUTCMinutes()).slice(-2) + ':' +
+		('00' + date.getUTCSeconds()).slice(-2);
+
+	return date;
 }
 
 // Return whether this criteria is valid as an object inside of an attribute

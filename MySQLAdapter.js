@@ -62,20 +62,9 @@ module.exports = (function() {
 		registerCollection: function(collection, cb) {
 			var self = this;
 
-			// Add tableName to collection
-			// Use both prefix and identity to define tableName
-			// Note that a non-string prefix values are problematic (such as 0 or true)
-			collection.tableName = (collection.prefix || '') + collection.identity;
+			collection.tableName = collection.identity;
 
-			// If the configuration in this collection corresponds 
-			// with a known database, reuse it the connection(s) to that db
-			dbs[collection.identity] = _.find(dbs, function(db) {
-				return collection.host === db.host && collection.database === db.database;
-			});
-
-			// Otherwise initialize for the first time
-			if (!dbs[collection.identity]) {
-
+			if(!dbs[collection.identity]) {
 				dbs[collection.identity] = marshalConfig(collection);
 
 				// Create the connection pool (if configured to do so)
@@ -112,9 +101,14 @@ module.exports = (function() {
 		// (contains attributes and autoIncrement value)
 		describe: function(collectionName, cb) {
 			var self = this;
+
 			spawnConnection(function __DESCRIBE__(connection, cb) {
+
 				var tableName = mysql.escapeId(dbs[collectionName].tableName);
+
 				var query = 'DESCRIBE ' + tableName;
+				var pkQuery = "SHOW INDEX FROM " + tableName + ";";
+
 				connection.query(query, function __DESCRIBE__(err, schema) {
 					if (err) {
 						if (err.code === 'ER_NO_SUCH_TABLE') {
@@ -122,11 +116,45 @@ module.exports = (function() {
 						} else return cb(err);
 					}
 
-					// Convert mysql format to standard javascript object
-					schema = sql.normalizeSchema(schema);
+					connection.query(pkQuery, function(err, pkResult) {
+						if(err) return cb(err);
 
-					// TODO: check that what was returned actually matches the cache
-					cb(null, schema);
+						// Loop through Schema and attach extra attributes
+						schema.forEach(function(attr) {
+
+							// Set Primary Key Attribute
+							if(attr.Key === 'PRI') {
+								attr.primaryKey = true;
+
+								// If also an integer set auto increment attribute
+								if(attr.Type === 'int(11)') {
+									attr.autoIncrement = true;
+								}
+							}
+
+							// Set Unique Attribute
+							if(attr.Key === 'UNI') {
+								attr.unique = true;
+							}
+						});
+
+						// Loop Through Indexes and Add Properties
+						pkResult.forEach(function(result) {
+							schema.forEach(function(attr) {
+								if(attr.Field !== result.Column_name) return;
+								attr.indexed = true;
+							});
+						});
+
+						// Convert mysql format to standard javascript object
+						schema = sql.normalizeSchema(schema);
+
+						// TODO: check that what was returned actually matches the cache
+						cb(null, schema);
+
+					});
+
+
 				});
 			}, dbs[collectionName], cb);
 		},
@@ -139,10 +167,10 @@ module.exports = (function() {
 				collectionName = mysql.escapeId(dbs[collectionName].tableName);
 
 				// Iterate through each attribute, building a query string
-				var $schema = sql.schema(collectionName, definition.attributes);
+				var schema = sql.schema(collectionName, definition);
 
 				// Build query
-				var query = 'CREATE TABLE ' + collectionName + ' (' + $schema + ')';
+				var query = 'CREATE TABLE ' + collectionName + ' (' + schema + ')';
 
 				// Run query
 				connection.query(query, function __DEFINE__(err, result) {
@@ -179,8 +207,8 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 				var query = sql.addColumn(dbs[collectionName].tableName, attrName, attrDef);
 
-				sails.log.verbose("ADD COLUMN QUERY ",query);
-				
+				// sails.log.verbose("ADD COLUMN QUERY ",query);
+
 				// Run query
 				connection.query(query, function(err, result) {
 					if (err) return cb(err);
@@ -197,7 +225,7 @@ module.exports = (function() {
 			spawnConnection(function(connection, cb) {
 				var query = sql.removeColumn(dbs[collectionName].tableName, attrName);
 
-				sails.log.verbose("REMOVE COLUMN QUERY ",query);
+				// sails.log.verbose("REMOVE COLUMN QUERY ",query);
 
 				// Run query
 				connection.query(query, function(err, result) {
@@ -241,35 +269,31 @@ module.exports = (function() {
 		// instead of using a separate connection for each request
 		createEach: function (collectionName, valuesList, cb) {
 			spawnConnection(function(connection, cb) {
-				async.forEach(valuesList, function (data, cb) {
+
+				var records = [];
+
+				async.eachSeries(valuesList, function (data, cb) {
 
 					// Run query
 					var query = sql.insertQuery(dbs[collectionName].tableName, data) + '; ';
+
 					connection.query(query, function(err, results) {
 						if (err) return cb(err);
-						cb(err, results);
+						records.push(results.insertId);
+						cb();
 					});
-				}, cb);
+				}, function(err) {
+					if(err) return cb(err);
 
+					// Build a Query to get newly inserted records
+					var query = "SELECT * FROM " + dbs[collectionName].tableName + " WHERE id IN (" + records + ");";
 
-				////////////////////////////////////////////////////////////////////////////////////
-				// node-mysql does not support multiple statements in a single query
-				// There are ways to fix this, but for now, we're using the more naive solution
-				//
-				// Here's what doing it w/ multiple statements/single query would look like, roughly:
-				//
-				////////////////////////////////////////////////////////////////////////////////////
-				// // Build giant query
-				// var query = '';
-				// _.each(valuesList, function (data) {
-				// 	query += sql.insertQuery(dbs[collectionName].tableName, data) + '; ';
-				// });
-
-				// // Run query
-				// connection.query(query, function(err, results) {
-				// 	if (err) return cb(err);
-				// 	cb(err, results);
-				// });
+					// Run Query returing results
+					connection.query(query, function(err, results) {
+						if(err) return cb(err);
+						cb(null, results);
+					});
+				});
 
 			}, dbs[collectionName], cb);
 		},
@@ -334,21 +358,44 @@ module.exports = (function() {
 				// Escape table name
 				var tableName = mysql.escapeId(dbs[collectionName].tableName);
 
-				// Build query
-				var query = 'UPDATE ' + tableName + ' SET ' + sql.criteria(dbs[collectionName].tableName, values) + ' ';
+				// Find the record before updating it
+				var criteria = sql.serializeOptions(dbs[collectionName].tableName, options);
 
-				query += sql.serializeOptions(dbs[collectionName].tableName, options);
+				var query = 'SELECT id FROM ' + tableName + ' ' + criteria;
 
-				// Run query
-				connection.query(query, function(err, result) {
-					if (err) return cb(err);
+				connection.query(query, function(err, results) {
+					if(err) return cb(err);
 
-					//the update was successful, select the updated records
-					adapter.find(collectionName, options, function(err, models) {
+					var ids = [];
+
+					results.forEach(function(result) {
+						ids.push(result.id);
+					});
+
+					// Build query
+					var query = 'UPDATE ' + tableName + ' SET ' + sql.criteria(dbs[collectionName].tableName, values) + ' ';
+
+					query += sql.serializeOptions(dbs[collectionName].tableName, options);
+
+					// Run query
+					connection.query(query, function(err, result) {
 						if (err) return cb(err);
 
-						cb(err, models);
+						var criteria;
+
+						if(ids.length === 1) {
+							criteria = { where: { id: ids[0] }, limit: 1 };
+						} else {
+							criteria = { where: { id: ids }};
+						}
+
+						// the update was successful, select the updated records
+						adapter.find(collectionName, criteria, function(err, models) {
+							if (err) return cb(err);
+							cb(err, models);
+						});
 					});
+
 				});
 			}, dbs[collectionName], cb);
 		},
@@ -367,7 +414,20 @@ module.exports = (function() {
 
 				// Run query
 				connection.query(query, function(err, result) {
-					cb(err, result);
+
+					var resultArray = [];
+
+					// Normalize Result Array
+					if(Array.isArray(result)) {
+						result.forEach(function(value) {
+							resultArray.push(value.insertId);
+						});
+
+						return cb(null, resultArray);
+					}
+
+					resultArray.push(result.insertId);
+					cb(err, resultArray);
 				});
 			}, dbs[collectionName], cb);
 		},

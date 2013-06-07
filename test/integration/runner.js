@@ -7,7 +7,7 @@
  */
 
 var tests = require('waterline-adapter-tests'),
-    adapter = require('../../MySQLAdapter'),
+    adapter = require('../..'),
     mocha = require('mocha');
 
 /**

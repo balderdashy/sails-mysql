@@ -2,7 +2,7 @@
   "name": "sails-mysql",
   "version": "0.8.0",
   "description": "MySQL adapter for Sails.js",
-  "main": "MySQLAdapter.js",
+  "main": "index.js",
   "scripts": {
     "test": "node test/integration/runner.js"
   },
@@ -27,7 +27,7 @@
     "mysql": "git://github.com/felixge/node-mysql.git"
   },
   "devDependencies": {
-    "mocha": "*",
+    "mocha": "~1.10.0",
     "waterline-adapter-tests": "0.9.0"
   }
 }

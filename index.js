@@ -21,14 +21,7 @@ module.exports = (function() {
 
 		// Whether this adapter is syncable (yes)
 		syncable: true,
-
-		// Enable dev-only commit log for now (in the future, native transaction support will be added)
-		commitLog: {
-			identity: '__default_waterline_mysql_transaction',
-			adapter: 'sails-dirty',
-			inMemory: true
-		},
-
+		
 		defaults: {
 
 			// Pooling doesn't work yet, so it's off by default
@@ -69,7 +62,7 @@ module.exports = (function() {
 
 				// Create the connection pool (if configured to do so)
 				// TODO: make this actually work
-				if (collection.pool) {
+				if (collection.config.pool) {
 					adapter.pool = mysql.createPool(marshalConfig(collection));
 
 					// Always make sure to keep a single connection tethered

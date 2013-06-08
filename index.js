@@ -48,7 +48,7 @@ module.exports = (function() {
 				if (data) connection.query(query, data, cb);
 				else connection.query(query, cb);
 
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// Initialize the underlying data model
@@ -149,7 +149,7 @@ module.exports = (function() {
 
 
 				});
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// Create a new collection
@@ -170,7 +170,7 @@ module.exports = (function() {
 					if (err) return cb(err);
 					cb(null, result);
 				});
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// Drop an existing collection
@@ -192,7 +192,7 @@ module.exports = (function() {
 					}
 					cb(null, result);
 				});
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		//
@@ -210,7 +210,7 @@ module.exports = (function() {
 					cb(err);
 				});
 
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		//
@@ -228,7 +228,7 @@ module.exports = (function() {
 					cb(err);
 				});
 
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// No custom alter necessary-- alter can be performed by using the other methods (addAttribute, removeAttribute)
@@ -255,7 +255,7 @@ module.exports = (function() {
 
 					cb(err, model);
 				});
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// Override of createEach to share a single connection
@@ -288,7 +288,7 @@ module.exports = (function() {
 					});
 				});
 
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// Find one or more models from the collection
@@ -304,7 +304,7 @@ module.exports = (function() {
 				connection.query(query, function(err, result) {
 					cb(err, result);
 				});
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// Stream one or more models from the collection
@@ -341,7 +341,7 @@ module.exports = (function() {
 					stream.end(); // End stream
 					cb(); // Close connection
 				});
-			}, dbs[collectionName]);
+			}, dbs[collectionName].config);
 		},
 
 		// Update one or more models in the collection
@@ -390,7 +390,7 @@ module.exports = (function() {
 					});
 
 				});
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 		// Delete one or more models from the collection
@@ -422,7 +422,7 @@ module.exports = (function() {
 					resultArray.push(result.insertId);
 					cb(err, resultArray);
 				});
-			}, dbs[collectionName], cb);
+			}, dbs[collectionName].config, cb);
 		},
 
 

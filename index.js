@@ -366,7 +366,7 @@ module.exports = (function() {
 					});
 
 					// Build query
-					var query = 'UPDATE ' + tableName + ' SET ' + sql.criteria(dbs[collectionName].tableName, values) + ' ';
+					var query = 'UPDATE ' + tableName + ' SET ' + sql.updateCriteria(dbs[collectionName].tableName, values) + ' ';
 
 					query += sql.serializeOptions(dbs[collectionName].tableName, options);
 

@@ -114,9 +114,10 @@ var sql = {
 		return sql.build(collectionName, values, sql.prepareValue, ', ', key);
 	},
 
-	// Create a WHERE criteria snippet for a DQL query
-	criteria: function(collectionName, values) {
-		return sql.build(collectionName, values, sql.prepareCriterion);
+	updateCriteria: function(collectionName, values) {
+		var query = sql.build(collectionName, values, sql.prepareCriterion);
+		query = query.replace('IS NULL', '=NULL');
+		return query;
 	},
 
 	prepareCriterion: function(collectionName, value, key, parentKey) {

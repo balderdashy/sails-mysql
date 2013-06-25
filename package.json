@@ -4,7 +4,7 @@
   "description": "MySQL adapter for Sails.js",
   "main": "lib/adapter.js",
   "scripts": {
-    "test": "node test/integration/runner.js"
+    "test": "make test"
   },
   "repository": {
     "type": "git",

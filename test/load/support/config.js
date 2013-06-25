@@ -3,5 +3,7 @@ module.exports = {
   user: 'root',
   password: '',
   database: 'sails-loadTest',
-  pool: true
+  pool: true,
+  connectionLimit: 10,
+  waitForConnections: true
 };

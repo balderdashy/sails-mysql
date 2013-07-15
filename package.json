@@ -18,13 +18,12 @@
   ],
   "author": "Mike McNeil",
   "license": "MIT",
-  "gitHead": "05d2633b77843251472e819bd55c41f5d6626009",
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "0.2.9",
     "underscore": "1.4.4",
     "underscore.string": "2.3.1",
-    "mysql": "git://github.com/felixge/node-mysql.git"
+    "mysql": "2.0.0-alpha8"
   },
   "devDependencies": {
     "mocha": "~1.10.0",

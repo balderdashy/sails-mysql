@@ -22,7 +22,13 @@ var config = {
 };
 
 /**
+ * Expose Interfaces Used In Adapter
+ */
+
+var interfaces = ['semantic', 'queryable', 'migratable', 'associations'];
+
+/**
  * Run Tests
  */
 
-var suite = new tests({ adapter: adapter, config: config });
+var suite = new tests({ adapter: adapter, config: config, interfaces: interfaces });

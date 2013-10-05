@@ -21,9 +21,8 @@
   "readmeFilename": "README.md",
   "dependencies": {
     "async": "0.2.9",
-    "underscore": "1.4.4",
-    "underscore.string": "2.3.1",
     "mysql": "2.0.0-alpha8"
+    "lodash": "~2.2.1",
   },
   "devDependencies": {
     "mocha": "1.10.0",

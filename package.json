@@ -22,7 +22,7 @@
   "dependencies": {
     "async": "~0.2.9",
     "lodash": "~2.2.1",
-    "mysql": "~2.0.0-alpha9"
+    "mysql": "~2.0.1"
   },
   "devDependencies": {
     "mocha": "~1.13.0",

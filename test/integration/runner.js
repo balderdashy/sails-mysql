@@ -18,7 +18,10 @@ var config = {
   host: 'localhost',
   user: 'root',
   password: '',
-  database: 'sails_mysql'
+  database: 'sails_mysql',
+  pool: true,
+  connectionLimit: 10,
+  waitForConnections: true
 };
 
 /**

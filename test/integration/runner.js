@@ -15,10 +15,10 @@ var tests = require('waterline-adapter-tests'),
  */
 
 var config = {
-  host: 'localhost',
-  user: 'root',
-  password: '',
-  database: 'sails_mysql',
+  host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
+  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
+  database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
   pool: true,
   connectionLimit: 10,
   waitForConnections: true

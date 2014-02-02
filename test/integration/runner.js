@@ -23,21 +23,18 @@ var Adapter = require('../../lib/adapter');
 
 // Grab targeted interfaces from this adapter's `package.json` file:
 var package = {},
-interfaces = [];
+  interfaces = [];
 try {
-	package = require('../../package.json');
+  package = require('../../package.json');
   interfaces = package.waterlineAdapter.interfaces;
-}
-catch (e) {
-    throw new Error(
-    '\n'+
-    'Could not read supported interfaces from `waterlineAdapter.interfaces`'+'\n' +
+} catch (e) {
+  throw new Error(
+    '\n' +
+    'Could not read supported interfaces from `waterlineAdapter.interfaces`' + '\n' +
     'in this adapter\'s `package.json` file ::' + '\n' +
     util.inspect(e)
-    );
+  );
 }
-
-
 
 
 
@@ -46,7 +43,7 @@ log.info('Running `waterline-adapter-tests` against ' + interfaces.length + ' in
 log.info('( ' + interfaces.join(', ') + ' )');
 console.log();
 log('Latest draft of Waterline adapter interface spec:');
-log('https://github.com/balderdashy/sails-docs/blob/master/adapter-specification.md');
+log('http://links.sailsjs.org/docs/plugins/adapters/interfaces');
 console.log();
 
 
@@ -60,40 +57,39 @@ console.log();
  */
 new TestRunner({
 
-    // Load the adapter module.
-    adapter: Adapter,
+  // Load the adapter module.
+  adapter: Adapter,
 
-    // Default connection config to use.
-    config: {
-		  host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
-		  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
-		  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
-		  database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
-		  pool: true,
-		  connectionLimit: 10,
-		  waitForConnections: true
-		},
+  // Default connection config to use.
+  config: {
+    host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+    user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
+    password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
+    database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
+    pool: true,
+    connectionLimit: 10,
+    waitForConnections: true
+  },
 
-    // The set of adapter interfaces to test against.
-    // (grabbed these from this adapter's package.json file above)
-    interfaces: interfaces
+  // The set of adapter interfaces to test against.
+  // (grabbed these from this adapter's package.json file above)
+  interfaces: interfaces
 
-    // Most databases implement 'semantic' and 'queryable'.
-    //
-    // As of Sails/Waterline v0.10, the 'associations' interface
-    // is also available.  If you don't implement 'associations',
-    // it will be polyfilled for you by Waterline core.  The core
-    // implementation will always be used for cross-adapter / cross-connection
-    // joins.
-    //
-    // In future versions of Sails/Waterline, 'queryable' may be also
-    // be polyfilled by core.
-    //
-    // These polyfilled implementations can usually be further optimized at the
-    // adapter level, since most databases provide optimizations for internal
-    // operations.
-    //
-    // Full interface reference:
-    // https://github.com/balderdashy/sails-docs/blob/master/adapter-specification.md
+  // Most databases implement 'semantic' and 'queryable'.
+  //
+  // As of Sails/Waterline v0.10, the 'associations' interface
+  // is also available.  If you don't implement 'associations',
+  // it will be polyfilled for you by Waterline core.  The core
+  // implementation will always be used for cross-adapter / cross-connection
+  // joins.
+  //
+  // In future versions of Sails/Waterline, 'queryable' may be also
+  // be polyfilled by core.
+  //
+  // These polyfilled implementations can usually be further optimized at the
+  // adapter level, since most databases provide optimizations for internal
+  // operations.
+  //
+  // Full interface reference:
+  // https://github.com/balderdashy/sails-docs/blob/master/adapter-specification.md
 });
-

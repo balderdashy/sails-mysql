@@ -22,7 +22,8 @@
   "dependencies": {
     "async": "~0.2.9",
     "lodash": "~2.2.1",
-    "mysql": "~2.0.1"
+    "mysql": "~2.0.1",
+    "waterline-errors": "~0.10.0"
   },
   "devDependencies": {
     "mocha": "~1.13.0",

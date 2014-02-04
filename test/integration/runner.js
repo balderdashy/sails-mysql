@@ -73,6 +73,7 @@ new TestRunner({
     database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
     pool: true,
     connectionLimit: 10,
+    queueLimit: 0,
     waitForConnections: true
   },
 

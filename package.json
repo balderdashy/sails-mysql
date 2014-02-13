@@ -20,14 +20,13 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
-    "async": "~0.2.9",
-    "underscore": "~1.5.2",
+    "async": "~0.2.10",
+    "underscore": "~1.6.0",
     "underscore.string": "~2.3.3",
     "mysql": "2.0.0-alpha8"
   },
   "devDependencies": {
-    "mocha": "1.10.0",
-    "waterline-adapter-tests": "~0.9.4",
-    "async": "0.2.9"
+    "mocha": "1.17.0",
+    "waterline-adapter-tests": "~0.9.4"
   }
 }

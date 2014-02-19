@@ -1,4 +1,4 @@
-# Sails-MySQL Adapter <img src="http://www.mysql.com/common/logos/powered-by-mysql-125x64.png" alt="Powered by MySQL" title="sails-mysql: MySQL adapter for Sails"/>
+# Sails-MySQL Adapter <a href="http://www.mysql.com"><img src="http://www.mysql.com/common/logos/powered-by-mysql-125x64.png" alt="Powered by MySQL" title="sails-mysql: MySQL adapter for Sails"/></a>
 
 MySQL adapter for the Sails framework and Waterline ORM.  Allows you to use MySQL via your models to store and retrieve data.  Also provides a `query()` method for a direct interface to execute raw SQL commands.
 
@@ -82,7 +82,7 @@ Default settings are:
 
 [Sails](http://sailsjs.org) is free and open-source under the [MIT License](http://sails.mit-license.org/).
 
-The MySQL logo 
+See the [MySQL Logo Usage Guidelines](http://www.mysql.com/about/legal/trademark.html) for more information on our use of the MySQL logo.
 
 ![image_squidhome@2x.png](http://i.imgur.com/RIvu9.png) 
  

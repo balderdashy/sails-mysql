@@ -1,4 +1,4 @@
-![image_squidhome@2x.png](http://i.imgur.com/RIvu9.png) 
+![image_squidhome@2x.png](http://i.imgur.com/RIvu9.png)
 
 # MySQLAdapter
 
@@ -30,7 +30,7 @@ module.exports.adapters = {
     user     : 'username',
     password : 'password',
     database : 'MySQL Database Name'
-    
+
     // OR (exlicit sets take precedence)
     module   : 'sails-mysql',
     url      : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
@@ -53,6 +53,7 @@ Default settings are:
 ```javascript
 {
   host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+  port: process.env.WATERLINE_ADAPTER_TESTS_PORT || '3306',
   user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
   password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
   database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
@@ -65,8 +66,8 @@ Default settings are:
 
 ## About Waterline
 Waterline is a new kind of storage and retrieval engine.  It provides a uniform API for accessing stuff from different kinds of databases, protocols, and 3rd party APIs.  That means you write the same code to get users, whether they live in mySQL, LDAP, MongoDB, or Facebook.
-Waterline also comes with built-in transaction support, as well as a configurable environment setting. 
+Waterline also comes with built-in transaction support, as well as a configurable environment setting.
 
- 
+
 
 [![githalytics.com alpha](https://cruel-carlota.pagodabox.com/a22d3919de208c90c898986619efaa85 "githalytics.com")](http://githalytics.com/mikermcneil/sails-mysql)

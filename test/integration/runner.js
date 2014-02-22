@@ -68,7 +68,7 @@ new TestRunner({
   // Default connection config to use.
   config: {
     host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
-    port: process.env.WATERLINE_ADAPTER_TESTS_PORT || '3306',
+    port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
     user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
     password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
     database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',

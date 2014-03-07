@@ -32,7 +32,6 @@ module.exports.adapters = {
     // OR (exlicit sets take precedence)
     module   : 'sails-mysql',
     url      : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
-    }
   }
 };
 ```

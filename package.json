@@ -1,6 +1,6 @@
 {
   "name": "sails-mysql",
-  "version": "0.10.0-rc2",
+  "version": "0.10.0-rc3",
   "description": "MySQL adapter for Sails.js",
   "main": "lib/adapter.js",
   "scripts": {

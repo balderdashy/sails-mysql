@@ -22,7 +22,7 @@
   "dependencies": {
     "async": "~0.2.9",
     "lodash": "~2.4.1",
-    "mysql": "~2.0.1",
+    "mysql": "~2.1.1",
     "waterline-errors": "~0.10.0"
   },
   "devDependencies": {

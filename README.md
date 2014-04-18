@@ -29,7 +29,7 @@ module.exports.adapters = {
     password : 'password',
     database : 'MySQL Database Name'
 
-    // OR (exlicit sets take precedence)
+    // OR (explicit sets take precedence)
     module   : 'sails-mysql',
     url      : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
   }

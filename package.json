@@ -20,9 +20,9 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
-    "async": "~0.8.0",
+    "async": "~0.9.0",
     "lodash": "~2.4.1",
-    "mysql": "~2.2.0",
+    "mysql": "~2.3.0",
     "waterline-errors": "~0.10.0"
   },
   "devDependencies": {

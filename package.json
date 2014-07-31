@@ -24,7 +24,8 @@
     "lodash": "~2.4.1",
     "mysql": "~2.3.0",
     "waterline-errors": "~0.10.0",
-    "waterline-cursor": "~0.0.0"
+    "waterline-sequel": "git://github.com/balderdashy/waterline-sequel.git#master",
+    "waterline-cursor": "git://github.com/particlebanana/waterline-cursor.git#rework"
   },
   "devDependencies": {
     "mocha": "~1.13.0",

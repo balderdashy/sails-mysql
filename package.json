@@ -24,7 +24,7 @@
     "lodash": "~2.4.1",
     "mysql": "~2.3.0",
     "waterline-errors": "~0.10.0",
-    "waterline-sequel": "~0.0.1",
+    "waterline-sequel": "~0.0.2",
     "waterline-cursor": "~0.0.3"
   },
   "devDependencies": {

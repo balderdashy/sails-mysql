@@ -15,24 +15,34 @@ $ npm install sails-mysql
 
 ## Sails Configuration
 
-Add the mysql config to the config/adapters.js file.  Basic options:
+Add the mysql config to the config/connections.js file. Basic options:
 
 ```javascript
-module.exports.adapters = {
-  'default': 'mysql',
-
+module.exports.connections = {
   mysql: {
-    module   : 'sails-mysql',
-    host     : 'localhost',
-    port     : 3306,
-    user     : 'username',
-    password : 'password',
-    database : 'MySQL Database Name'
+    module    : 'sails-mysql',
+    host      : 'localhost',
+    port      : 3306,
+    user      : 'username',
+    password  : 'password',
+    database  : 'MySQL Database Name'
 
     // OR (explicit sets take precedence)
-    module   : 'sails-mysql',
-    url      : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
+    module    : 'sails-mysql',
+    url       : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
+    
+    // Optional
+    charset   : 'utf8',
+    collation : 'utf8_swedish_ci'
   }
+};
+```
+
+And then change default model configuration to the config/models.js:
+
+```javascript
+module.exports.models = {
+  connection: 'mysql'
 };
 ```
 

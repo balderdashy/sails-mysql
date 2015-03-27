@@ -80,7 +80,10 @@ new TestRunner({
 
   // The set of adapter interfaces to test against.
   // (grabbed these from this adapter's package.json file above)
-  interfaces: interfaces
+  interfaces: interfaces,
+    
+  // Return code non zero if any test fails
+  failOnError: true
 
   // Most databases implement 'semantic' and 'queryable'.
   //

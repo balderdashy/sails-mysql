@@ -9,6 +9,7 @@ module.exports = {
   id:{
     type: 'integer',
     autoIncrement: true,
+    size: 64,
     defaultsTo: 'AUTO_INCREMENT',
     primaryKey: true
   },

@@ -28,6 +28,7 @@
     "waterline-cursor": "~0.0.5"
   },
   "devDependencies": {
+    "should": "*",
     "mocha": "~1.13.0",
     "waterline-adapter-tests": "~0.10.7",
     "captains-log": "~0.11.5"

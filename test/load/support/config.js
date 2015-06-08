@@ -1,8 +1,8 @@
 module.exports = {
   host: 'localhost',
-  user: 'root',
+  user: 'sixpounder',
   password: '',
-  database: 'sails-loadTest',
+  database: 'sails_loadTest',
   pool: true,
   connectionLimit: 10,
   waitForConnections: true

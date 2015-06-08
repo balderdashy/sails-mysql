@@ -40,7 +40,7 @@ try {
 
 
 
-log.info('Testing `' + packageDefinition.name + '`, a Sails/Waterline adapter.');
+log.info('Testing `' + package.name + '`, a Sails/Waterline adapter.');
 log.info('Running `waterline-adapter-tests` against ' + interfaces.length + ' interfaces...');
 log.info('( ' + interfaces.join(', ') + ' )');
 console.log();
@@ -73,7 +73,7 @@ new TestRunner({
     port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
     user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
     password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
-    database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_loadTest',
+    database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
     pool: true,
     connectionLimit: 10,
     queueLimit: 0,

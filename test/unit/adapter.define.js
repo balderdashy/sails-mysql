@@ -61,7 +61,7 @@ describe('adapter', function() {
       });
 
       // notNull constraint
-      it('should add a notNull constraint', function(done) {
+      it('should create a bigint primary key', function(done) {
         adapter.define('test', 'test_define', definition, function(err) {
           support.Client(function(err, client) {
             var query = "SELECT COLUMN_TYPE from information_schema.COLUMNS "+
@@ -78,7 +78,7 @@ describe('adapter', function() {
 
     });
     
-    it('should create a bigint primary key', function(done) {
+    it('should add a notNull constraint', function(done) {
         adapter.define('test', 'test_define', definition, function(err) {
           support.Client(function(err, client) {
             var query = "SELECT IS_NULLABLE from information_schema.COLUMNS "+

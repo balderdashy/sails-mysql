@@ -16,7 +16,7 @@ Support.SqlOptions = {
 
 Support.Config = {
   host: 'localhost',
-  user: process.env.DB_USER || 'sixpounder',
+  user: process.env.DB_USER || 'root',
   password: process.env.DB_PASS || '',
   database: 'sails_unitTest',
   port: 3306

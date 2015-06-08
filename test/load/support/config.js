@@ -1,6 +1,6 @@
 module.exports = {
   host: 'localhost',
-  user: 'sixpounder',
+  user: 'root',
   password: '',
   database: 'sails_loadTest',
   pool: true,

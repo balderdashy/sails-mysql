@@ -17,7 +17,7 @@ after(function(done) {
 });
 
 function dropTable(cb) {
-  Adapter.registerCollection({ identity: 'loadTest', config: config }, function(err) {
+  Adapter.registerConnection({ identity: 'loadTest', config: config }, function(err) {
     if(err) cb(err);
     Adapter.drop('loadTest', cb);
   });

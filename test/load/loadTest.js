@@ -13,7 +13,7 @@ describe('Load Testing', function() {
     var Schema;
 
     // Register The Collection
-    Adapter.registerCollection({ identity: 'loadTest', config: Config }, function(err) {
+    Adapter.registerConnection({ identity: 'loadTest', config: Config }, {'Person': Fixture}, function(err) {
       if(err) done(err);
 
       // Define The Collection

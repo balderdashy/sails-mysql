@@ -65,7 +65,7 @@ describe('adapter', function() {
         adapter.define('test', 'test_define', definition, function(err) {
           support.Client(function(err, client) {
             var query = "SELECT COLUMN_TYPE from information_schema.COLUMNS "+
-              "WHERE TABLE_SCHEMA = 'sails_unitTest' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'id'";
+              "WHERE TABLE_SCHEMA = 'sails_mysql' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'id'";
             
             client.query(query, function(err, rows) {
               rows[0].COLUMN_TYPE.should.eql("bigint(20)");
@@ -82,7 +82,7 @@ describe('adapter', function() {
         adapter.define('test', 'test_define', definition, function(err) {
           support.Client(function(err, client) {
             var query = "SELECT IS_NULLABLE from information_schema.COLUMNS "+
-              "WHERE TABLE_SCHEMA = 'sails_unitTest' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'name'";
+              "WHERE TABLE_SCHEMA = 'sails_mysql' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'name'";
             
             client.query(query, function(err, rows) {
               rows[0].IS_NULLABLE.should.eql("NO");

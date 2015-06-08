@@ -73,7 +73,7 @@ new TestRunner({
     port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
     user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
     password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
-    database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_unitTest',
+    database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
     pool: true,
     connectionLimit: 10,
     queueLimit: 0,

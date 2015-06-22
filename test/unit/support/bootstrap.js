@@ -15,10 +15,11 @@ Support.SqlOptions = {
 };
 
 Support.Config = {
-  host: 'localhost',
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASS || '',
-  database: 'sails_mysql',
+  host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+  port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
+  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
+  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
+  database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
   port: 3306
 };
 

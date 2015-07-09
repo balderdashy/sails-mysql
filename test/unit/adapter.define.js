@@ -28,14 +28,20 @@ describe('adapter', function() {
       notNull: true
     },
     email : 'string',
-    title : 'string',
+    title : {
+      type: 'string',
+      defaultsTo: 'N/A'
+    },
     phone : 'string',
     type  : 'string',
     favoriteFruit : {
       defaultsTo: 'blueberry',
       type: 'string'
     },
-    age   : 'integer'
+    age   : {
+      type:'integer',
+      defaultsTo: 18
+    }
   };
 
   /**
@@ -69,6 +75,38 @@ describe('adapter', function() {
 
             client.query(query, function(err, rows) {
               rows[0].COLUMN_TYPE.should.eql("bigint(20)");
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+
+      it('should define default string value in database', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE, COLUMN_DEFAULT from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'title'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql('varchar(255)');
+              rows[0].COLUMN_DEFAULT.should.eql('N/A');
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+
+      it('should define default integer value in database', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE, COLUMN_DEFAULT from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'age'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql('int(11)');
+              rows[0].COLUMN_DEFAULT.should.eql('18');
               client.end();
               done();
             });

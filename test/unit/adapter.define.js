@@ -1,4 +1,5 @@
-var adapter = require('../../lib/adapter'),
+var _ = require('lodash'),
+    adapter = require('../../lib/adapter'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -41,6 +42,10 @@ describe('adapter', function() {
     age   : {
       type:'integer',
       defaultsTo: 18
+    },
+    vehicles: {
+      type: 'json',
+      defaultsTo: [ { make: 'Toyota', model: 'Corolla' } ]
     }
   };
 
@@ -59,7 +64,7 @@ describe('adapter', function() {
 
         adapter.define('test', 'test_define', definition, function(err) {
           adapter.describe('test', 'test_define', function(err, result) {
-            Object.keys(result).length.should.eql(8);
+            Object.keys(result).length.should.eql(_.keys(definition).length);
             done();
           });
         });
@@ -114,8 +119,23 @@ describe('adapter', function() {
         });
       });
 
+      it('should not define default value for text/blob column', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE, COLUMN_DEFAULT from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'vehicles'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql('longtext');
+              (rows[0].COLUMN_DEFAULT === null).should.be.true;
+              client.end();
+              done();
+            });
+          });
+        });
+      });
     });
-    
+
     it('should add a notNull constraint', function(done) {
         adapter.define('test', 'test_define', definition, function(err) {
           support.Client(function(err, client) {
@@ -151,7 +171,7 @@ describe('adapter', function() {
 
         adapter.define('test', 'user', definition, function(err) {
           adapter.describe('test', 'user', function(err, result) {
-            Object.keys(result).length.should.eql(8);
+            Object.keys(result).length.should.eql(_.keys(definition).length);
             done();
           });
         });

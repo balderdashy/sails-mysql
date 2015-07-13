@@ -24,7 +24,7 @@
     "lodash": "~2.4.1",
     "mysql": "~2.5.4",
     "waterline-errors": "~0.10.0",
-    "waterline-sequel": "git://github.com/zivc/waterline-sequel.git",
+    "waterline-sequel": "https://github.com/zivc/waterline-sequel.git",
     "waterline-cursor": "~0.0.5"
   },
   "devDependencies": {

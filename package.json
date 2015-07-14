@@ -43,7 +43,9 @@
       "sql"
     ],
     "features": [
-      "cross-adapter"
+      "crossAdapter",
+      "unique",
+      "autoIncrement.sequential"
     ]
   }
 }

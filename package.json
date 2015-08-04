@@ -28,9 +28,10 @@
     "waterline-cursor": "~0.0.5"
   },
   "devDependencies": {
+    "captains-log": "~0.11.5",
     "mocha": "~1.13.0",
     "waterline-adapter-tests": "~0.10.7",
-    "captains-log": "~0.11.5"
+    "waterline-sequel": "git://github.com/zivc/waterline-sequel"
   },
   "waterlineAdapter": {
     "waterlineVersion": "~0.10.0",

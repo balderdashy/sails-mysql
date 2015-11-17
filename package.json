@@ -25,12 +25,12 @@
     "mysql": "~2.8.0",
     "waterline-errors": "~0.10.0",
     "waterline-sequel": "~0.5.0",
-    "waterline-cursor": "~0.0.5"
+    "waterline-cursor": "~0.0.6"
   },
   "devDependencies": {
     "should": "*",
     "mocha": "~1.13.0",
-    "waterline-adapter-tests": "~0.10.7",
+    "waterline-adapter-tests": "~0.10.15",
     "captains-log": "~0.11.5"
   },
   "waterlineAdapter": {

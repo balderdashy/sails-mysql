@@ -1,4 +1,5 @@
-var adapter = require('../../lib/adapter'),
+var _ = require('lodash'),
+    adapter = require('../../lib/adapter'),
     should = require('should'),
     support = require('./support/bootstrap');
 
@@ -28,14 +29,24 @@ describe('adapter', function() {
       notNull: true
     },
     email : 'string',
-    title : 'string',
+    title : {
+      type: 'string',
+      defaultsTo: 'N/A'
+    },
     phone : 'string',
     type  : 'string',
     favoriteFruit : {
       defaultsTo: 'blueberry',
       type: 'string'
     },
-    age   : 'integer'
+    age   : {
+      type:'integer',
+      defaultsTo: 18
+    },
+    vehicles: {
+      type: 'json',
+      defaultsTo: [ { make: 'Toyota', model: 'Corolla' } ]
+    }
   };
 
   /**
@@ -53,7 +64,7 @@ describe('adapter', function() {
 
         adapter.define('test', 'test_define', definition, function(err) {
           adapter.describe('test', 'test_define', function(err, result) {
-            Object.keys(result).length.should.eql(8);
+            Object.keys(result).length.should.eql(_.keys(definition).length);
             done();
           });
         });
@@ -76,8 +87,55 @@ describe('adapter', function() {
         });
       });
 
+      it('should define default string value in database', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE, COLUMN_DEFAULT from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'title'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql('varchar(255)');
+              rows[0].COLUMN_DEFAULT.should.eql('N/A');
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+
+      it('should define default integer value in database', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE, COLUMN_DEFAULT from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'age'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql('int(11)');
+              rows[0].COLUMN_DEFAULT.should.eql('18');
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+
+      it('should not define default value for text/blob column', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE, COLUMN_DEFAULT from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'vehicles'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql('longtext');
+              (rows[0].COLUMN_DEFAULT === null).should.be.true;
+              client.end();
+              done();
+            });
+          });
+        });
+      });
     });
-    
+
     it('should add a notNull constraint', function(done) {
         adapter.define('test', 'test_define', definition, function(err) {
           support.Client(function(err, client) {
@@ -113,7 +171,7 @@ describe('adapter', function() {
 
         adapter.define('test', 'user', definition, function(err) {
           adapter.describe('test', 'user', function(err, result) {
-            Object.keys(result).length.should.eql(8);
+            Object.keys(result).length.should.eql(_.keys(definition).length);
             done();
           });
         });

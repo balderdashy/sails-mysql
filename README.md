@@ -33,10 +33,12 @@ module.exports.connections = {
     // OR (explicit sets take precedence)
     module    : 'sails-mysql',
     url       : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
-    
+
     // Optional
     charset   : 'utf8',
     collation : 'utf8_swedish_ci'
+    defaultTableCharset   : 'utf8'
+    defaultTableCollation : 'utf8_general_ci'
   }
 };
 ```

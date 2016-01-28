@@ -27,6 +27,11 @@ describe('adapter', function() {
       type: 'string',
       notNull: true
     },
+    score : {
+      type: 'integer',
+      size: 16,
+      unsigned: true
+    },
     email : 'string',
     title : 'string',
     phone : 'string',
@@ -53,7 +58,7 @@ describe('adapter', function() {
 
         adapter.define('test', 'test_define', definition, function(err) {
           adapter.describe('test', 'test_define', function(err, result) {
-            Object.keys(result).length.should.eql(8);
+            Object.keys(result).length.should.eql(9);
             done();
           });
         });
@@ -76,6 +81,20 @@ describe('adapter', function() {
         });
       });
 
+      it('should create an unsigned column', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT * from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = 'sails_mysql' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'score'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql("smallint(5) unsigned");
+              client.end();
+              done();
+            });
+          });
+        });
+      });
     });
     
     it('should add a notNull constraint', function(done) {
@@ -113,7 +132,7 @@ describe('adapter', function() {
 
         adapter.define('test', 'user', definition, function(err) {
           adapter.describe('test', 'user', function(err, result) {
-            Object.keys(result).length.should.eql(8);
+            Object.keys(result).length.should.eql(9);
             done();
           });
         });

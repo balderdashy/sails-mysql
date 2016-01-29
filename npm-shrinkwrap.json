@@ -1,6 +1,6 @@
 {
   "name": "sails-mysql",
-  "version": "0.11.2",
+  "version": "0.11.3",
   "dependencies": {
     "async": {
       "version": "1.5.2",

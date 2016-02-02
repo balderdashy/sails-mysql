@@ -27,6 +27,22 @@ describe('adapter', function() {
       type: 'string',
       notNull: true
     },
+    value : {
+      type: 'float',
+      size: '8,4'
+    },
+    decimal : {
+      type: 'decimal',
+      size: '10,4'
+    },
+    fail : {
+      type: 'float',
+      size: 32
+    },
+    wrong : {
+      type: 'decimal',
+      size: 32
+    },
     email : 'string',
     title : 'string',
     phone : 'string',
@@ -69,6 +85,66 @@ describe('adapter', function() {
 
             client.query(query, function(err, rows) {
               rows[0].COLUMN_TYPE.should.eql("bigint(20)");
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+      
+      it('should create a float with length 8,4', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'value'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql("float(8,4)");
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+      
+      it('should create a decimal with length 10,4', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'decimal'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql("decimal(10,4)");
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+      
+      it('should create a float with no length', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'fail'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql("float");
+              client.end();
+              done();
+            });
+          });
+        });
+      });
+      
+      it('should create a decimal with default length', function(done) {
+        adapter.define('test', 'test_define', definition, function(err) {
+          support.Client(function(err, client) {
+            var query = "SELECT COLUMN_TYPE from information_schema.COLUMNS "+
+              "WHERE TABLE_SCHEMA = '" + support.Config.database + "' AND TABLE_NAME = 'test_define' AND COLUMN_NAME = 'wrong'";
+
+            client.query(query, function(err, rows) {
+              rows[0].COLUMN_TYPE.should.eql("decimal(10,0)");
               client.end();
               done();
             });

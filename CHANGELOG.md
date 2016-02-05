@@ -1,5 +1,11 @@
 # Sails MySQL Changelog
 
+### 0.11.4
+
+* [BUG] Updates [Waterline-Sequel](https://github.com/balderdashy/waterline-sequel) dependency to gain support for querying dates when they are represented as a string in the criteria.
+
+* [ENHANCEMENT] Normalize the adapter errors some to be more in line with the Postgres driver. Now returns the `originalError` key as specified in [Waterline-Adapter-Tests](https://github.com/balderdashy/waterline-adapter-tests/pull/89).
+
 ### 0.11.3
 
 * [BUG] Fixes issue with an outdated `.stream()` interface. See [#264](https://github.com/balderdashy/sails-mysql/pull/264) for more details. Thanks [@github1337](https://github.com/github1337) for the patch!

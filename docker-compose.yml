@@ -1,0 +1,14 @@
+adapter:
+  build: .
+  volumes:
+   - .:/usr/src/app
+  links:
+   - mysql
+
+mysql:
+  image: mysql
+  environment:
+   - MYSQL_DATABASE=sails_mysql
+   - MYSQL_USER=sails
+   - MYSQL_PASSWORD=sails
+   - MYSQL_ROOT_PASSWORD=sails

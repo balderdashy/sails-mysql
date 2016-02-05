@@ -69,10 +69,10 @@ new TestRunner({
 
   // Default connection config to use.
   config: {
-    host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+    host: process.env.MYSQL_1_PORT_3306_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
     port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
-    user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
-    password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
+    user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'sails',
+    password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || 'sails',
     database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
     pool: true,
     connectionLimit: 10,
@@ -83,11 +83,11 @@ new TestRunner({
   // The set of adapter interfaces to test against.
   // (grabbed these from this adapter's package.json file above)
   interfaces: interfaces,
-  
+
   // The set of adapter features to test against.
   // (grabbed these from this adapter's package.json file above)
   features: features,
-    
+
   // Return code non zero if any test fails
   failOnError: true
 

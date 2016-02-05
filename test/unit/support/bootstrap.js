@@ -15,10 +15,10 @@ Support.SqlOptions = {
 };
 
 Support.Config = {
-  host: process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+  host: process.env.MYSQL_1_PORT_3306_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
   port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
-  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
-  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
+  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'sails',
+  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || 'sails',
   database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
   port: 3306
 };
@@ -59,7 +59,6 @@ Support.Schema = function(name, def) {
 
 // Register and Define a Collection
 Support.Setup = function(tableName, cb) {
-
   var collection = Support.Collection(tableName);
 
   var collections = {};
@@ -95,16 +94,16 @@ Support.registerConnection = function(tableNames, cb) {
 // Remove a table
 Support.Teardown = function(tableName, cb) {
   var client = mysql.createConnection(this.Config);
-  
+
   dropTable(tableName, client, function(err) {
     if(err) {
       return cb(err);
     }
-    
+
     adapter.teardown('test', function(err) {
       cb();
     });
-    
+
   });
 };
 

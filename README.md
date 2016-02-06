@@ -34,6 +34,8 @@ module.exports.connections = {
     url       : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
 
     // Optional
+    engine    : 'InnoDB',
+    rowFormat : 'DYNAMIC',
     charset   : 'utf8',
     collation : 'utf8_swedish_ci'
   }

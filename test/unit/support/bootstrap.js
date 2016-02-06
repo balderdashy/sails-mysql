@@ -15,12 +15,11 @@ Support.SqlOptions = {
 };
 
 Support.Config = {
-  host: process.env.MYSQL_1_PORT_3306_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
+  host: process.env.MYSQL_PORT_3306_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
   port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
-  user: process.env.WATERLINE_ADAPTER_TESTS_USER || 'sails',
-  password: process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || 'sails',
-  database: process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql',
-  port: 3306
+  user: process.env.MYSQL_ENV_MYSQL_USER || process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
+  password: process.env.MYSQL_ENV_MYSQL_PASSWORD || process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || '',
+  database: process.env.MYSQL_ENV_MYSQL_DATABASE || process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'sails_mysql'
 };
 
 // Fixture Collection Def

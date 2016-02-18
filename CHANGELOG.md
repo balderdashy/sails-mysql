@@ -1,5 +1,11 @@
 # Sails MySQL Changelog
 
+### 0.11.5
+
+* [BUG] Updates [Waterline-Sequel](https://github.com/balderdashy/waterline-sequel) dependency to actually fix the previous dates bug.
+
+* [ENHANCEMENT] Changes the database url parsing to strip out query string values. See [#280](https://github.com/balderdashy/sails-mysql/pull/280) for more details. Thanks [@Bazze](https://github.com/Bazze)!
+
 ### 0.11.4
 
 * [BUG] Updates [Waterline-Sequel](https://github.com/balderdashy/waterline-sequel) dependency to gain support for querying dates when they are represented as a string in the criteria.

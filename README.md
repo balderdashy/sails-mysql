@@ -29,6 +29,24 @@ module.exports.connections = {
     password  : 'password',
     database  : 'MySQL Database Name'
 
+    // OR (replication / clusterPool)
+    replication: {
+      canRetry: true,
+      defaultSelector: 'RR',
+
+      read: [
+        {host: 'localhost'}
+      ],
+
+      write: [
+        {host: 'localhost', user: 'username', password: 'password'}
+      ],
+      
+      readwrite: [
+        {host: 'localhost', user: 'username', password: 'password'}
+      ]
+    },
+
     // OR (explicit sets take precedence)
     module    : 'sails-mysql',
     url       : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'

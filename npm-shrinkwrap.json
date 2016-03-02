@@ -74,9 +74,9 @@
       "resolved": "https://registry.npmjs.org/waterline-errors/-/waterline-errors-0.10.1.tgz"
     },
     "waterline-sequel": {
-      "version": "0.5.7",
-      "from": "waterline-sequel@0.5.7",
-      "resolved": "https://registry.npmjs.org/waterline-sequel/-/waterline-sequel-0.5.7.tgz",
+      "version": "0.5.8",
+      "from": "cjy37/waterline-sequel@0.5.8",
+      "resolved": "https://github.com/cjy37/waterline-sequel/tarball/master",
       "dependencies": {
         "lodash": {
           "version": "3.10.0",

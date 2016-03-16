@@ -1,10 +1,11 @@
 {
   "name": "sails-mysql",
-  "version": "0.11.3",
+  "version": "0.11.5",
   "description": "MySQL adapter for Sails.js",
   "main": "lib/adapter.js",
   "scripts": {
-    "test": "make test"
+    "test": "make test",
+    "docker": "docker-compose run adapter bash"
   },
   "repository": {
     "type": "git",
@@ -23,15 +24,15 @@
     "async": "1.5.2",
     "lodash": "3.10.1",
     "mysql": "2.10.2",
-    "waterline-cursor": "~0.0.6",
-    "waterline-errors": "~0.10.1",
-    "waterline-sequel": "~0.5.5"
+    "waterline-cursor": "0.0.6",
+    "waterline-errors": "0.10.1",
+    "waterline-sequel": "0.5.7"
   },
   "devDependencies": {
     "captains-log": "~0.11.11",
     "mocha": "2.4.1",
     "should": "8.2.0",
-    "waterline-adapter-tests": "~0.10.17"
+    "waterline-adapter-tests": "~0.11.1"
   },
   "waterlineAdapter": {
     "waterlineVersion": "~0.10.0",

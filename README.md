@@ -89,7 +89,7 @@ Default settings are:
 #### License
 
 **[MIT](./LICENSE)**
-&copy; 2014
+&copy; 2016
 [Mike McNeil](http://michaelmcneil.com), [Balderdash](http://balderdash.co) & contributors
 
 [Sails](http://sailsjs.org) is free and open-source under the [MIT License](http://sails.mit-license.org/).

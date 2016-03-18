@@ -1,5 +1,11 @@
 # Sails MySQL Changelog
 
+### 0.12.0
+
+* [Enhancement] Upgrades the version of Waterline-Sequel being used to support using projections in join queries. See [#294](https://github.com/balderdashy/sails-mysql/pull/294) for more details.
+
+* [Enhancement] Adds JSHint and tweaks code style slightly to better support community additions. See [#295](https://github.com/balderdashy/sails-mysql/pull/295) for more details. 
+
 ### 0.11.5
 
 * [BUG] Updates [Waterline-Sequel](https://github.com/balderdashy/waterline-sequel) dependency to actually fix the previous dates bug.

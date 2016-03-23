@@ -1,10 +1,14 @@
 # Sails MySQL Changelog
 
+### 0.12.1
+
+* [BUG] Fixes issue with populates due to changes in projections queries coming from Waterline-Sequel. Updated the `waterline-sequel` dependency to `0.6.2` to fix. See [#297](https://github.com/balderdashy/sails-mysql/issues/297) for more details. Thanks [@wulfsolter](https://github.com/wulfsolter) and [@aradnom](https://github.com/aradnom) for helping debug and test.
+
 ### 0.12.0
 
 * [Enhancement] Upgrades the version of Waterline-Sequel being used to support using projections in join queries. See [#294](https://github.com/balderdashy/sails-mysql/pull/294) for more details.
 
-* [Enhancement] Adds JSHint and tweaks code style slightly to better support community additions. See [#295](https://github.com/balderdashy/sails-mysql/pull/295) for more details. 
+* [Enhancement] Adds JSHint and tweaks code style slightly to better support community additions. See [#295](https://github.com/balderdashy/sails-mysql/pull/295) for more details.
 
 ### 0.11.5
 

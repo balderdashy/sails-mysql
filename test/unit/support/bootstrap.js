@@ -52,7 +52,8 @@ Support.Schema = function(name, def) {
     connection: 'test',
     identity: name,
     tableName: name,
-    attributes: def || Support.Definition
+    attributes: def || Support.Definition,
+    definition: def || Support.Definition
   };
 }
 

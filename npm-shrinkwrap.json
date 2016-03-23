@@ -1,6 +1,6 @@
 {
   "name": "sails-mysql",
-  "version": "0.12.0",
+  "version": "0.12.1",
   "dependencies": {
     "async": {
       "version": "1.5.2",
@@ -44,7 +44,7 @@
             },
             "inherits": {
               "version": "2.0.1",
-              "from": "inherits@>=2.0.1 <2.1.0",
+              "from": "inherits@>=2.0.0 <3.0.0",
               "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.1.tgz"
             }
           }
@@ -74,9 +74,9 @@
       "resolved": "https://registry.npmjs.org/waterline-errors/-/waterline-errors-0.10.1.tgz"
     },
     "waterline-sequel": {
-      "version": "0.6.0",
-      "from": "waterline-sequel@0.6.0",
-      "resolved": "https://registry.npmjs.org/waterline-sequel/-/waterline-sequel-0.6.0.tgz",
+      "version": "0.6.2",
+      "from": "waterline-sequel@0.6.2",
+      "resolved": "https://registry.npmjs.org/waterline-sequel/-/waterline-sequel-0.6.2.tgz",
       "dependencies": {
         "lodash": {
           "version": "3.10.0",

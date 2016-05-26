@@ -1,6 +1,6 @@
 {
   "name": "sails-mysql",
-  "version": "0.11.6",
+  "version": "0.11.7",
   "description": "MySQL adapter for Sails.js",
   "main": "lib/adapter.js",
   "scripts": {
@@ -35,7 +35,7 @@
     "waterline-adapter-tests": "~0.11.1"
   },
   "waterlineAdapter": {
-    "waterlineVersion": "~0.10.0",
+    "waterlineVersion": "~0.12.0",
     "interfaces": [
       "semantic",
       "queryable",

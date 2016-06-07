@@ -24,7 +24,7 @@
     "async": "1.5.2",
     "lodash": "3.10.1",
     "mysql": "2.10.2",
-    "waterline-cursor": "0.0.6",
+    "waterline-cursor": "0.0.7",
     "waterline-errors": "0.10.1",
     "waterline-sequel": "0.6.3"
   },

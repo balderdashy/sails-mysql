@@ -29,9 +29,9 @@
     "waterline-sequel": "0.6.3"
   },
   "devDependencies": {
-    "mocha": "2.4.1",
-    "should": "8.2.0",
     "waterline-adapter-tests": "~0.12.0"
+    "mocha": "2.5.3",
+    "should": "9.0.0",
   },
   "waterlineAdapter": {
     "waterlineVersion": "~0.12.0",

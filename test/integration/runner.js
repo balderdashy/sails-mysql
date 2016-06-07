@@ -15,7 +15,6 @@
 
 var util = require('util');
 var mocha = require('mocha');
-var log = require('captains-log')();
 var TestRunner = require('waterline-adapter-tests');
 var Adapter = require('../../lib/adapter');
 
@@ -40,12 +39,12 @@ try {
 
 
 
-log.info('Testing `' + package.name + '`, a Sails/Waterline adapter.');
-log.info('Running `waterline-adapter-tests` against ' + interfaces.length + ' interfaces...');
-log.info('( ' + interfaces.join(', ') + ' )');
+console.log('Testing `' + package.name + '`, a Sails/Waterline adapter.');
+console.log('Running `waterline-adapter-tests` against ' + interfaces.length + ' interfaces...');
+console.log('( ' + interfaces.join(', ') + ' )');
 console.log();
-log('Latest draft of Waterline adapter interface spec:');
-log('http://links.sailsjs.org/docs/plugins/adapters/interfaces');
+console.log('Latest draft of Waterline adapter interface spec:');
+console.log('http://links.sailsjs.org/docs/plugins/adapters/interfaces');
 console.log();
 
 

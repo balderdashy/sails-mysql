@@ -1,5 +1,15 @@
 # Sails MySQL Changelog
 
+### 0.12.2
+
+* [ENHANCEMENT] Adds support for case-insensitive queries using the `wlNext.caseSensitive` flag. See [#304](https://github.com/balderdashy/sails-mysql/pull/304) for more details. Thanks [@wulfsolter](https://github.com/wulfsolter) for the patch!
+
+* [ENHANCEMENT] Adds MariaDB to the automated test suite. See [#276](https://github.com/balderdashy/sails-mysql/pull/276) for more details. Thanks to [@grooverdan](https://github.com/grooverdan) for the patch.
+
+* [ENHANCEMENT] Updates the dependencies to the latest versions which should remove any warning messages when installing.
+
+* [BUG] Fixes issues with backwards compatibility to Waterline `0.11.x` and older.
+
 ### 0.12.1
 
 * [BUG] Fixes issue with populates due to changes in projections queries coming from Waterline-Sequel. Updated the `waterline-sequel` dependency to `0.6.2` to fix. See [#297](https://github.com/balderdashy/sails-mysql/issues/297) for more details. Thanks [@wulfsolter](https://github.com/wulfsolter) and [@aradnom](https://github.com/aradnom) for helping debug and test.

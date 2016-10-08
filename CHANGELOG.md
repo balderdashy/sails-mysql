@@ -1,5 +1,11 @@
 # Sails MySQL Changelog
 
+## master
+
+* [NODE] Upgrades the underlying felixge/mysql dependency to work with Node v6.  See [#321](https://github.com/balderdashy/sails-mysql/issues/321)  (Thanks [@matuck](http://github.com/matuck)!)
+
+## ~0.12
+
 ### 0.12.2
 
 * [ENHANCEMENT] Adds support for case-insensitive queries using the `wlNext.caseSensitive` flag. See [#304](https://github.com/balderdashy/sails-mysql/pull/304) for more details. Thanks [@wulfsolter](https://github.com/wulfsolter) for the patch!
@@ -19,6 +25,9 @@
 * [Enhancement] Upgrades the version of Waterline-Sequel being used to support using projections in join queries. See [#294](https://github.com/balderdashy/sails-mysql/pull/294) for more details.
 
 * [Enhancement] Adds JSHint and tweaks code style slightly to better support community additions. See [#295](https://github.com/balderdashy/sails-mysql/pull/295) for more details.
+
+## ~0.11
+
 
 ### 0.11.5
 

@@ -1,11 +1,18 @@
 {
   "name": "sails-mysql",
-  "version": "0.12.2",
+  "version": "0.12.3",
   "dependencies": {
     "async": {
-      "version": "1.5.2",
-      "from": "async@1.5.2",
-      "resolved": "https://registry.npmjs.org/async/-/async-1.5.2.tgz"
+      "version": "2.0.1",
+      "from": "async@2.0.1",
+      "resolved": "https://registry.npmjs.org/async/-/async-2.0.1.tgz",
+      "dependencies": {
+        "lodash": {
+          "version": "4.16.4",
+          "from": "lodash@>=4.8.0 <5.0.0",
+          "resolved": "https://registry.npmjs.org/lodash/-/lodash-4.16.4.tgz"
+        }
+      }
     },
     "lodash": {
       "version": "3.10.1",
@@ -13,18 +20,18 @@
       "resolved": "https://registry.npmjs.org/lodash/-/lodash-3.10.1.tgz"
     },
     "mysql": {
-      "version": "2.10.2",
-      "from": "mysql@2.10.2",
-      "resolved": "https://registry.npmjs.org/mysql/-/mysql-2.10.2.tgz",
+      "version": "2.11.1",
+      "from": "mysql@2.11.1",
+      "resolved": "https://registry.npmjs.org/mysql/-/mysql-2.11.1.tgz",
       "dependencies": {
         "bignumber.js": {
-          "version": "2.1.4",
-          "from": "bignumber.js@2.1.4",
-          "resolved": "https://registry.npmjs.org/bignumber.js/-/bignumber.js-2.1.4.tgz"
+          "version": "2.3.0",
+          "from": "bignumber.js@2.3.0",
+          "resolved": "https://registry.npmjs.org/bignumber.js/-/bignumber.js-2.3.0.tgz"
         },
         "readable-stream": {
           "version": "1.1.14",
-          "from": "readable-stream@>=1.1.13 <1.2.0",
+          "from": "readable-stream@1.1.14",
           "resolved": "https://registry.npmjs.org/readable-stream/-/readable-stream-1.1.14.tgz",
           "dependencies": {
             "core-util-is": {
@@ -43,18 +50,30 @@
               "resolved": "https://registry.npmjs.org/string_decoder/-/string_decoder-0.10.31.tgz"
             },
             "inherits": {
-              "version": "2.0.1",
+              "version": "2.0.3",
               "from": "inherits@>=2.0.1 <2.1.0",
-              "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.1.tgz"
+              "resolved": "https://registry.npmjs.org/inherits/-/inherits-2.0.3.tgz"
             }
           }
+        },
+        "sqlstring": {
+          "version": "2.0.1",
+          "from": "sqlstring@2.0.1",
+          "resolved": "https://registry.npmjs.org/sqlstring/-/sqlstring-2.0.1.tgz"
         }
       }
     },
     "waterline-cursor": {
       "version": "0.0.7",
       "from": "waterline-cursor@0.0.7",
-      "resolved": "https://registry.npmjs.org/waterline-cursor/-/waterline-cursor-0.0.7.tgz"
+      "resolved": "https://registry.npmjs.org/waterline-cursor/-/waterline-cursor-0.0.7.tgz",
+      "dependencies": {
+        "async": {
+          "version": "1.5.2",
+          "from": "async@1.5.2",
+          "resolved": "https://registry.npmjs.org/async/-/async-1.5.2.tgz"
+        }
+      }
     },
     "waterline-errors": {
       "version": "0.10.1",

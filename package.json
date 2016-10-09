@@ -24,17 +24,17 @@
     "async": "2.0.1",
     "lodash": "3.10.1",
     "mysql": "2.11.1",
-    "waterline-cursor": "~0.0.7",
+    "waterline-cursor": "^0.0.7",
     "waterline-errors": "0.10.1",
     "waterline-sequel": "0.6.4"
   },
   "devDependencies": {
     "mocha": "3.0.2",
     "should": "9.0.0",
-    "waterline-adapter-tests": "~0.12.1"
+    "waterline-adapter-tests": "^0.12.1"
   },
   "waterlineAdapter": {
-    "waterlineVersion": "~0.12.0",
+    "waterlineVersion": "^0.12.0",
     "interfaces": [
       "semantic",
       "queryable",

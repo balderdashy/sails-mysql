@@ -21,7 +21,7 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
-    "async": "1.5.2",
+    "async": "2.0.1",
     "lodash": "3.10.1",
     "mysql": "2.11.1",
     "waterline-cursor": "0.0.7",

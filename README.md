@@ -23,7 +23,7 @@ Add the mysql config to the config/connections.js file. Basic options:
 ```javascript
 module.exports.connections = {
   mysql: {
-    module    : 'sails-mysql',
+    adapter    : 'sails-mysql',
     host      : 'localhost',
     port      : 3306,
     user      : 'username',
@@ -31,7 +31,7 @@ module.exports.connections = {
     database  : 'MySQL Database Name'
 
     // OR (explicit sets take precedence)
-    module    : 'sails-mysql',
+    adapter    : 'sails-mysql',
     url       : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
 
     // Optional

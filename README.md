@@ -35,6 +35,8 @@ module.exports.connections = {
     url       : 'mysql2://USER:PASSWORD@HOST:PORT/DATABASENAME'
 
     // Optional
+    engine    : 'InnoDB',
+    rowFormat : 'DYNAMIC',
     charset   : 'utf8',
     collation : 'utf8_swedish_ci'
   }
@@ -47,6 +49,27 @@ And then change default model configuration to the config/models.js:
 module.exports.models = {
   connection: 'mysql'
 };
+```
+
+##### 767bytes problem in utf8mb4
+
+This measures how If you get "The maximum column size is 767 bytes.".
+
+Extend the key prefix up to 3072 bytes in innodb_large_prefix option.
+Append the following settings to `my.cnf`.
+
+```
+[mysqld]
+innodb_file_format = Barracuda
+innodb_file_per_table = 1
+innodb_large_prefix
+```
+
+Next to the config / connections.js you're done adding the following options.
+
+```
+    engine    : 'InnoDB',
+    rowFormat : 'DYNAMIC',
 ```
 
 ## Run tests
@@ -72,8 +95,6 @@ Default settings are:
   waitForConnections: true
 }
 ```
-
-
 
 #### More Resources
 

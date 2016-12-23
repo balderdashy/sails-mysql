@@ -22,7 +22,7 @@
   "license": "MIT",
   "readmeFilename": "README.md",
   "dependencies": {
-   "@sailshq/lodash": "^3.10.2",
+    "@sailshq/lodash": "^3.10.2",
     "async": "2.0.1",
     "machine": "^13.0.0-17",
     "machinepack-mysql": "treelinehq/machinepack-mysql",

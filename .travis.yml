@@ -1,9 +1,23 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#   ╔╦╗╦═╗╔═╗╦  ╦╦╔═╗ ┬ ┬┌┬┐┬                           #
+#    ║ ╠╦╝╠═╣╚╗╔╝║╚═╗ └┬┘││││                           #
+#  o ╩ ╩╚═╩ ╩ ╚╝ ╩╚═╝o ┴ ┴ ┴┴─┘                         #
+#                                                       #
+# This file configures Travis CI.                       #
+# (i.e. how we run the tests... mainly)                 #
+#                                                       #
+# https://docs.travis-ci.com/user/customizing-the-build #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 language: node_js
+
 node_js:
   - "0.10"
   - "0.12"
   - "4"
   - "5"
+  - "6"
+  - "7"
   - "node"
 
 matrix:
@@ -26,6 +40,9 @@ matrix:
         - addons:
              mariadb: 10.1
           node_js: '4'
+branches:
+  only:
+    - master
 
 services: mysql
 sudo: false
@@ -35,4 +52,4 @@ env:
   - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=root WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=sails_mysql
 notifications:
   email:
-    - particlebanana@gmail.com
+    - ci@sailsjs.com

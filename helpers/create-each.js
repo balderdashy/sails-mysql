@@ -73,7 +73,6 @@ module.exports = require('machine').build({
     var utils = require('waterline-utils');
     var Helpers = require('./private');
 
-
     // Store the Query input for easier access
     var query = inputs.query;
     query.meta = query.meta || {};
@@ -89,6 +88,9 @@ module.exports = require('machine').build({
     // Set a flag if a leased connection from outside the adapter was used or not.
     var leased = _.has(query.meta, 'leasedConnection');
 
+
+    // Set a flag to determine if records are being returned
+    var fetchRecords = false;
 
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
@@ -109,13 +111,25 @@ module.exports = require('machine').build({
       return exits.error(e);
     }
 
-    // Find the Primary Key and add a "returning" clause to the statement.
+
+    //  ╔╦╗╔═╗╔╦╗╔═╗╦═╗╔╦╗╦╔╗╔╔═╗  ┬ ┬┬ ┬┬┌─┐┬ ┬  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+    //   ║║║╣  ║ ║╣ ╠╦╝║║║║║║║║╣   │││├─┤││  ├─┤  └┐┌┘├─┤│  │ │├┤ └─┐
+    //  ═╩╝╚═╝ ╩ ╚═╝╩╚═╩ ╩╩╝╚╝╚═╝  └┴┘┴ ┴┴└─┘┴ ┴   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+    //  ┌┬┐┌─┐  ┬─┐┌─┐┌┬┐┬ ┬┬─┐┌┐┌
+    //   │ │ │  ├┬┘├┤  │ │ │├┬┘│││
+    //   ┴ └─┘  ┴└─└─┘ ┴ └─┘┴└─┘└┘
+    if (_.has(query.meta, 'fetch') && query.meta.fetch) {
+      fetchRecords = true;
+    }
+
+    // Find the Primary Key
     var primaryKeyField = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyField].columnName;
 
     // Remove primary key if the value is NULL
     _.each(statement.insert, function removeNullPrimaryKey(record) {
-      if (_.isNull(record[primaryKeyField])) {
-        delete record[primaryKeyField];
+      if (_.isNull(record[primaryKeyColumnName])) {
+        delete record[primaryKeyColumnName];
       }
     });
 
@@ -133,36 +147,18 @@ module.exports = require('machine').build({
       }
 
 
-      //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-      //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
-      //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
-      // Compile the original Waterline Query
-      var compiledQuery;
-      try {
-        compiledQuery = Helpers.query.compileStatement(statement);
-      } catch (e) {
-        // If the statement could not be compiled, release the connection and end
-        // the transaction.
-        Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
-          return exits.error(e);
-        });
-
-        return;
-      }
-
-      //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐
-      //  ║║║║╚═╗║╣ ╠╦╝ ║   ├┬┘├┤ │  │ │├┬┘ ││
-      //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ┴└─└─┘└─┘└─┘┴└──┴┘
-      // Insert the record and return the new values
-      Helpers.query.insertRecord({
+      //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌─┐┬ ┬
+      //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   ├┤ ├─┤│  ├─┤
+      //  ╚═╝╩╚═╚═╝╩ ╩ ╩ ╚═╝  └─┘┴ ┴└─┘┴ ┴
+      // Run the Create Each util
+      Helpers.query.createEach({
         connection: connection,
-        query: compiledQuery,
-        model: model,
-        tableName: query.using,
-        leased: leased
+        statement: statement,
+        fetch: fetchRecords,
+        primaryKey: primaryKeyColumnName
       },
 
-      function insertRecordCb(err, insertedRecords) {
+      function createEachCb(err, insertedRecords) {
         // If there was an error the helper takes care of closing the connection
         // if a connection was spawned internally.
         if (err) {

@@ -81,6 +81,9 @@ module.exports = require('machine').build({
     // Set a flag if a leased connection from outside the adapter was used or not.
     var leased = _.has(query.meta, 'leasedConnection');
 
+    // Set a flag to determine if records are being returned
+    var fetchRecords = false;
+
 
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
@@ -101,13 +104,26 @@ module.exports = require('machine').build({
       return exits.error(e);
     }
 
-    // Find the Primary Key and add a "returning" clause to the statement.
+
+    //  ╔╦╗╔═╗╔╦╗╔═╗╦═╗╔╦╗╦╔╗╔╔═╗  ┬ ┬┬ ┬┬┌─┐┬ ┬  ┬  ┬┌─┐┬  ┬ ┬┌─┐┌─┐
+    //   ║║║╣  ║ ║╣ ╠╦╝║║║║║║║║╣   │││├─┤││  ├─┤  └┐┌┘├─┤│  │ │├┤ └─┐
+    //  ═╩╝╚═╝ ╩ ╚═╝╩╚═╩ ╩╩╝╚╝╚═╝  └┴┘┴ ┴┴└─┘┴ ┴   └┘ ┴ ┴┴─┘└─┘└─┘└─┘
+    //  ┌┬┐┌─┐  ┬─┐┌─┐┌┬┐┬ ┬┬─┐┌┐┌
+    //   │ │ │  ├┬┘├┤  │ │ │├┬┘│││
+    //   ┴ └─┘  ┴└─└─┘ ┴ └─┘┴└─┘└┘
+    if (_.has(query.meta, 'fetch') && query.meta.fetch) {
+      fetchRecords = true;
+    }
+
+
+    // Find the Primary Key
     var primaryKeyField = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyField].columnName;
 
     // Remove primary key if the value is NULL. This allows the auto-increment
     // to work properly if set.
-    if (_.isNull(statement.insert[primaryKeyField])) {
-      delete statement.insert[primaryKeyField];
+    if (_.isNull(statement.insert[primaryKeyColumnName])) {
+      delete statement.insert[primaryKeyColumnName];
     }
 
 
@@ -123,37 +139,18 @@ module.exports = require('machine').build({
         return exits.badConnection(err);
       }
 
-
-      //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-      //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
-      //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
-      // Compile the original Waterline Query
-      var compiledQuery;
-      try {
-        compiledQuery = Helpers.query.compileStatement(statement);
-      } catch (e) {
-        // If the statement could not be compiled, release the connection and end
-        // the transaction.
-        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-          return exits.error(e);
-        });
-
-        return;
-      }
-
       //  ╦╔╗╔╔═╗╔═╗╦═╗╔╦╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐
       //  ║║║║╚═╗║╣ ╠╦╝ ║   ├┬┘├┤ │  │ │├┬┘ ││
       //  ╩╝╚╝╚═╝╚═╝╩╚═ ╩   ┴└─└─┘└─┘└─┘┴└──┴┘
       // Insert the record and return the new values
-      Helpers.query.insertRecord({
+      Helpers.query.create({
         connection: connection,
-        query: compiledQuery,
-        model: model,
-        tableName: query.using,
-        leased: leased
+        statement: statement,
+        fetch: fetchRecords,
+        primaryKey: primaryKeyColumnName
       },
 
-      function insertRecordCb(err, insertedRecords) {
+      function modifyRecordCb(err, insertedRecords) {
         // If there was an error the helper takes care of closing the connection
         // if a connection was spawned internally.
         if (err) {

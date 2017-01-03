@@ -171,7 +171,22 @@ module.exports = require('machine').build({
 
         // Release the connection if needed.
         Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
-          return exits.success({ records: insertedRecords });
+          if (fetchRecords) {
+            var orm = {
+              collections: inputs.models
+            };
+
+            // Process each record to normalize output
+            Helpers.query.processEachRecord({
+              records: insertedRecords,
+              identity: model.identity,
+              orm: orm
+            });
+
+            return exits.success({ records: insertedRecords });
+          }
+
+          return exits.success();
         }); // </ .releaseConnection(); >
       }); // </ .insertRecord(); >
     }); // </ .spawnOrLeaseConnection(); >

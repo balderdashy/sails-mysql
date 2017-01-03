@@ -63,8 +63,9 @@ module.exports = require('machine').build({
   fn: function update(inputs, exits) {
     // Dependencies
     var _ = require('@sailshq/lodash');
-    var Converter = require('waterline-utils').query.converter;
+    var WLUtils = require('waterline-utils');
     var Helpers = require('./private');
+    var Converter = WLUtils.query.converter;
 
 
     // Store the Query input for easier access
@@ -162,7 +163,18 @@ module.exports = require('machine').build({
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function cb() {
           if (fetchRecords) {
-            return exits.success({ records: report.rows });
+            var orm = {
+              collections: inputs.models
+            };
+
+            // Process each record to normalize output
+            Helpers.query.processEachRecord({
+              records: updatedRecords,
+              identity: model.identity,
+              orm: orm
+            });
+
+            return exits.success({ records: updatedRecords });
           }
 
           return exits.success();

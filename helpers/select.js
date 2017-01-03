@@ -63,7 +63,8 @@ module.exports = require('machine').build({
   fn: function select(inputs, exits) {
     // Dependencies
     var _ = require('@sailshq/lodash');
-    var Converter = require('waterline-utils').query.converter;
+    var WLUtils = require('waterline-utils');
+    var Converter = WLUtils.query.converter;
     var Helpers = require('./private');
 
 
@@ -145,7 +146,19 @@ module.exports = require('machine').build({
         // Always release the connection unless a leased connection from outside
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-          return exits.success({ records: report.result });
+          var selectRecords = report.result;
+          var orm = {
+            collections: inputs.models
+          };
+
+          // Process each record to normalize output
+          Helpers.query.processEachRecord({
+            records: selectRecords,
+            identity: model.identity,
+            orm: orm
+          });
+
+          return exits.success({ records: selectRecords });
         }); // </ releaseConnection >
       }); // </ runQuery >
     }); // </ spawnConnection >

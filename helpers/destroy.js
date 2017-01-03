@@ -63,13 +63,20 @@ module.exports = require('machine').build({
   fn: function destroy(inputs, exits) {
     // Dependencies
     var _ = require('@sailshq/lodash');
-    var Converter = require('waterline-utils').query.converter;
+    var WLUtils = require('waterline-utils');
     var Helpers = require('./private');
+    var Converter = WLUtils.query.converter;
 
 
     // Store the Query input for easier access
     var query = inputs.query;
     query.meta = query.meta || {};
+
+    // Find the model definition
+    var model = inputs.models[query.using];
+    if (!model) {
+      return exits.invalidDatastore();
+    }
 
 
     // Set a flag if a leased connection from outside the adapter was used or not.
@@ -151,7 +158,19 @@ module.exports = require('machine').build({
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function cb() {
           if (fetchRecords) {
-            return exits.success({ records: report.rows });
+            var selectRecords = report.result;
+            var orm = {
+              collections: inputs.models
+            };
+
+            // Process each record to normalize output
+            Helpers.query.processEachRecord({
+              records: selectRecords,
+              identity: model.identity,
+              orm: orm
+            });
+
+            return exits.success({ records: selectRecords });
           }
 
           return exits.success();

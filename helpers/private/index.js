@@ -10,6 +10,8 @@ module.exports = {
 
   // Helpers for handling query logic
   query: {
+    create: require('./query/create'),
+    createEach: require('./query/create-each'),
     compileStatement: require('./query/compile-statement'),
     initializeQueryCache: require('./query/initialize-query-cache'),
     insertRecord: require('./query/insert-record'),

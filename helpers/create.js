@@ -150,15 +150,14 @@ module.exports = require('machine').build({
         primaryKey: primaryKeyColumnName
       },
 
-      function modifyRecordCb(err, insertedRecords) {
-        // If there was an error the helper takes care of closing the connection
-        // if a connection was spawned internally.
-        if (err) {
-          return exits.error(err);
-        }
-
+      function createRecordCb(err, insertedRecords) {
         // Release the connection if needed.
         Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
+          // If there was an error return it.
+          if (err) {
+            return exits.error(err);
+          }
+
           if (fetchRecords) {
             var orm = {
               collections: inputs.models

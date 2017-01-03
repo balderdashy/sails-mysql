@@ -155,10 +155,12 @@ module.exports = require('machine').build({
     var dbSchema = {};
 
     _.each(inputs.models, function buildSchema(val) {
+      var identity = val.identity;
       var tableName = val.tableName;
       var definition = val.definition;
 
       dbSchema[tableName] = {
+        identity: identity,
         tableName: tableName,
         definition: definition,
         primaryKey: val.primaryKey

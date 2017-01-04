@@ -156,11 +156,15 @@ module.exports = require('machine').build({
             };
 
             // Process each record to normalize output
-            Helpers.query.processEachRecord({
-              records: updatedRecords,
-              identity: model.identity,
-              orm: orm
-            });
+            try {
+              Helpers.query.processEachRecord({
+                records: updatedRecords,
+                identity: model.identity,
+                orm: orm
+              });
+            } catch (e) {
+              return exits.error(e);
+            }
 
             return exits.success({ records: updatedRecords });
           }

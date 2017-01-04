@@ -119,6 +119,11 @@ module.exports = require('machine').build({
     }
 
 
+    // Find the Primary Key
+    var primaryKeyField = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyField].columnName;
+
+
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
@@ -138,7 +143,8 @@ module.exports = require('machine').build({
       Helpers.query.update({
         connection: connection,
         statement: statement,
-        fetch: fetchRecords
+        fetch: fetchRecords,
+        primaryKey: primaryKeyColumnName
       },
 
       function updateRecordCb(err, updatedRecords) {

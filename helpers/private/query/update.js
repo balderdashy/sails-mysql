@@ -6,6 +6,8 @@
 //   ╚═════╝ ╚═╝     ╚═════╝ ╚═╝  ╚═╝   ╚═╝   ╚══════╝
 //
 // Modify the record(s) and return the values that were modified if needed.
+// If a fetch was performed, first the records need to be searched for with the
+// primary key selected.
 
 var _ = require('@sailshq/lodash');
 var runQuery = require('./run-query');
@@ -28,50 +30,34 @@ module.exports = function insertRecord(options, cb) {
     throw new Error('Invalid option used in options argument. Missing or invalid statement.');
   }
 
+  if (!_.has(options, 'primaryKey') || !_.isString(options.primaryKey)) {
+    throw new Error('Invalid option used in options argument. Missing or invalid primaryKey.');
+  }
+
   if (!_.has(options, 'fetch') || !_.isBoolean(options.fetch)) {
     throw new Error('Invalid option used in options argument. Missing or invalid fetch flag.');
   }
 
 
-  //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-  //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
-  //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
-  // Compile the statement into a native query.
-  var compiledUpdateQuery;
-  try {
-    compiledUpdateQuery = compileStatement(options.statement);
-  } catch (e) {
-    // If the statement could not be compiled, return an error.
-    return cb(e);
-  }
-
-  //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-  //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘
-  //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴
-  // Run the initial query
-  runQuery({
-    connection: options.connection,
-    nativeQuery: compiledUpdateQuery,
-    disconnectOnError: false,
-    queryType: 'update'
-  },
-
-  function runQueryCb(err, report) {
-    if (err) {
-      return cb(err);
-    }
-
-    // If no fetch was used, then nothing else needs to be done.
+  //  ╔═╗╔═╗╔╦╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐  ┌┐ ┌─┐┬┌┐┌┌─┐  ┬ ┬┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐
+  //  ║ ╦║╣  ║   ├┬┘├┤ │  │ │├┬┘ ││└─┐  ├┴┐├┤ │││││ ┬  │ │├─┘ ││├─┤ │ ├┤  ││
+  //  ╚═╝╚═╝ ╩   ┴└─└─┘└─┘└─┘┴└──┴┘└─┘  └─┘└─┘┴┘└┘└─┘  └─┘┴  ─┴┘┴ ┴ ┴ └─┘─┴┘
+  // If a fetch is used, the records that will be updated need to be found first.
+  // This is because in order to (semi) accurately return the records that were
+  // updated in MySQL first they need to be found, then updated, then found again.
+  // Why? Because if you have a criteria such as update name to foo where name = bar
+  // Once the records have been updated there is no way to get them again. So first
+  // select the primary keys of the records to update, update the records, and then
+  // search for those records.
+  (function getRecordsToUpdate(proceed) {
+    // Only look up the records if fetch was used
     if (!options.fetch) {
-      return cb(undefined, report.result);
+      return proceed();
     }
 
-    //  ╔═╗╔═╗╦═╗╔═╗╔═╗╦═╗╔╦╗  ┌┬┐┬ ┬┌─┐  ┌─┐┌─┐┌┬┐┌─┐┬ ┬
-    //  ╠═╝║╣ ╠╦╝╠╣ ║ ║╠╦╝║║║   │ ├─┤├┤   ├┤ ├┤  │ │  ├─┤
-    //  ╩  ╚═╝╩╚═╚  ╚═╝╩╚═╩ ╩   ┴ ┴ ┴└─┘  └  └─┘ ┴ └─┘┴ ┴
-    // Otherwise, fetch the newly inserted record
+    // Otherwise build up a select query
     var fetchStatement = {
-      select: '*',
+      select: [options.primaryKey],
       from: options.statement.using,
       where: options.statement.where
     };
@@ -85,25 +71,111 @@ module.exports = function insertRecord(options, cb) {
       compiledFetchQuery = compileStatement(fetchStatement);
     } catch (e) {
       // If the statement could not be compiled, return an error.
-      return cb(err);
+      return proceed(e);
     }
-
 
     //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
     //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘
     //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴
-    // Run the fetch query.
+    // Run the initial find query
     runQuery({
       connection: options.connection,
       nativeQuery: compiledFetchQuery,
       disconnectOnError: false,
       queryType: 'select'
-    }, function runQueryCb(err, report) {
+    },
+
+    function runQueryCb(err, report) {
+      if (err) {
+        return proceed(err);
+      }
+
+      return proceed(undefined, report);
+    });
+  })(function afterInitialFetchCb(err, selectReport) {
+    if (err) {
+      return cb(err);
+    }
+
+    //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+    //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
+    //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
+    // Compile the update statement into a native query.
+    var compiledUpdateQuery;
+    try {
+      compiledUpdateQuery = compileStatement(options.statement);
+    } catch (e) {
+      // If the statement could not be compiled, return an error.
+      return cb(e);
+    }
+
+    //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+    //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘
+    //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴
+    // Run the initial query
+    runQuery({
+      connection: options.connection,
+      nativeQuery: compiledUpdateQuery,
+      disconnectOnError: false,
+      queryType: 'update'
+    },
+
+    function runQueryCb(err, report) {
       if (err) {
         return cb(err);
       }
 
-      return cb(undefined, report.result);
+      // If no fetch was used, then nothing else needs to be done.
+      if (!options.fetch) {
+        return cb(undefined, report.result);
+      }
+
+      //  ╔═╗╔═╗╦═╗╔═╗╔═╗╦═╗╔╦╗  ┌┬┐┬ ┬┌─┐  ┌─┐┌─┐┌┬┐┌─┐┬ ┬
+      //  ╠═╝║╣ ╠╦╝╠╣ ║ ║╠╦╝║║║   │ ├─┤├┤   ├┤ ├┤  │ │  ├─┤
+      //  ╩  ╚═╝╩╚═╚  ╚═╝╩╚═╩ ╩   ┴ ┴ ┴└─┘  └  └─┘ ┴ └─┘┴ ┴
+      // Otherwise, fetch the newly inserted record
+      var fetchStatement = {
+        select: '*',
+        from: options.statement.using,
+        where: {}
+      };
+
+      // Build the fetch statement where clause
+      var selectPks = _.map(selectReport.result, function mapPks(record) {
+        return record[options.primaryKey];
+      });
+
+      fetchStatement.where[options.primaryKey] = { in: selectPks }
+
+      //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
+      // Compile the statement into a native query.
+      var compiledFetchQuery;
+      try {
+        compiledFetchQuery = compileStatement(fetchStatement);
+      } catch (e) {
+        // If the statement could not be compiled, return an error.
+        return cb(err);
+      }
+
+
+      //  ╦═╗╦ ╦╔╗╔  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
+      //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘
+      //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴
+      // Run the fetch query.
+      runQuery({
+        connection: options.connection,
+        nativeQuery: compiledFetchQuery,
+        disconnectOnError: false,
+        queryType: 'select'
+      }, function runQueryCb(err, report) {
+        if (err) {
+          return cb(err);
+        }
+
+        return cb(undefined, report.result);
+      });
     });
   });
 };

@@ -91,7 +91,7 @@ module.exports = require('machine').build({
       }
 
       // Build Query
-      var query = 'ALTER TABLE ' + tableName + ' DROP COLUMN "' + inputs.attributeName + '" RESTRICT';
+      var query = 'ALTER TABLE ' + tableName + ' DROP COLUMN ' + inputs.attributeName + ' RESTRICT';
 
 
       //  ╦═╗╦ ╦╔╗╔  ┌─┐┬ ┌┬┐┌─┐┬─┐  ┌┬┐┌─┐┌┐ ┬  ┌─┐

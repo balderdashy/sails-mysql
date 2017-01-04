@@ -92,6 +92,27 @@ module.exports = require('machine').build({
     // Set a flag to determine if records are being returned
     var fetchRecords = false;
 
+
+    // Build a faux ORM for use in processEachRecords
+    var fauxOrm = {
+      collections: inputs.models
+    };
+
+
+    //  ╔═╗╦═╗╔═╗  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
+    //  ╠═╝╠╦╝║╣───╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ├┬┘├┤ │  │ │├┬┘ ││└─┐
+    //  ╩  ╩╚═╚═╝  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
+    // Process each record to normalize output
+    try {
+      Helpers.query.preProcessRecord({
+        records: query.newRecords,
+        identity: model.identity,
+        orm: fauxOrm
+      });
+    } catch (e) {
+      return exits.error(e);
+    }
+
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╝╚╝ ╚╝ ╚═╝╩╚═ ╩    ┴ └─┘  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
@@ -167,16 +188,16 @@ module.exports = require('machine').build({
           }
 
           if (fetchRecords) {
-            var orm = {
-              collections: inputs.models
-            };
-
             // Process each record to normalize output
-            Helpers.query.processEachRecord({
-              records: insertedRecords,
-              identity: model.identity,
-              orm: orm
-            });
+            try {
+              Helpers.query.processEachRecord({
+                records: insertedRecords,
+                identity: model.identity,
+                orm: fauxOrm
+              });
+            } catch (e) {
+              return exits.error(e);
+            }
 
             return exits.success({ records: insertedRecords });
           }

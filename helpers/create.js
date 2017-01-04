@@ -85,6 +85,26 @@ module.exports = require('machine').build({
     var fetchRecords = false;
 
 
+    // Build a faux ORM for use in processEachRecords
+    var fauxOrm = {
+      collections: inputs.models
+    };
+
+    //  ╔═╗╦═╗╔═╗  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
+    //  ╠═╝╠╦╝║╣───╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ├┬┘├┤ │  │ │├┬┘ ││└─┐
+    //  ╩  ╩╚═╚═╝  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
+    // Process each record to normalize output
+    try {
+      Helpers.query.preProcessRecord({
+        records: [query.newRecord],
+        identity: model.identity,
+        orm: fauxOrm
+      });
+    } catch (e) {
+      return exits.error(e);
+    }
+
+
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╝╚╝ ╚╝ ╚═╝╩╚═ ╩    ┴ └─┘  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
@@ -159,16 +179,16 @@ module.exports = require('machine').build({
           }
 
           if (fetchRecords) {
-            var orm = {
-              collections: inputs.models
-            };
-
             // Process each record to normalize output
-            Helpers.query.processEachRecord({
-              records: insertedRecords,
-              identity: model.identity,
-              orm: orm
-            });
+            try {
+              Helpers.query.processEachRecord({
+                records: insertedRecords,
+                identity: model.identity,
+                orm: fauxOrm
+              });
+            } catch (e) {
+              return exits.error(e);
+            }
 
             // Only return the first record (there should only ever be one)
             var insertedRecord = _.first(insertedRecords);

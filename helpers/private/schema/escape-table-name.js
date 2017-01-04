@@ -16,6 +16,6 @@
 // if needed.
 
 module.exports = function escapeTableName(name) {
-  name = '' + name;
+  name = '`' + name + '`';
   return name;
 };

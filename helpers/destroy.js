@@ -117,13 +117,9 @@ module.exports = require('machine').build({
     }
 
 
-    // Compile the original Waterline Query
-    var compiledQuery;
-    try {
-      compiledQuery = Helpers.query.compileStatement(statement);
-    } catch (e) {
-      return exits.error(e);
-    }
+    // Find the Primary Key
+    var primaryKeyField = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyField].columnName;
 
 
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
@@ -142,23 +138,23 @@ module.exports = require('machine').build({
       //  ╦═╗╦ ╦╔╗╔  ┌┬┐┌─┐┌─┐┌┬┐┬─┐┌─┐┬ ┬  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║   ││├┤ └─┐ │ ├┬┘│ │└┬┘  │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝  ─┴┘└─┘└─┘ ┴ ┴└─└─┘ ┴   └─┘└└─┘└─┘┴└─ ┴
-      Helpers.query.runQuery({
+      Helpers.query.destroy({
         connection: connection,
-        nativeQuery: compiledQuery,
-        disconnectOnError: leased ? false : true
+        statement: statement,
+        fetch: fetchRecords,
+        primaryKey: primaryKeyColumnName
       },
 
-      function runQueryCb(err, report) {
-        // The connection will have been disconnected on error already if needed.
-        if (err) {
-          return exits.error(err);
-        }
-
+      function destroyRecordCb(err, destroyedRecords) {
         // Always release the connection unless a leased connection from outside
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function cb() {
+          // If there was an error return it.
+          if (err) {
+            return exits.error(err);
+          }
+
           if (fetchRecords) {
-            var selectRecords = report.result;
             var orm = {
               collections: inputs.models
             };
@@ -166,7 +162,7 @@ module.exports = require('machine').build({
             // Process each record to normalize output
             try {
               Helpers.query.processEachRecord({
-                records: selectRecords,
+                records: destroyedRecords,
                 identity: model.identity,
                 orm: orm
               });
@@ -174,7 +170,7 @@ module.exports = require('machine').build({
               return exits.error(e);
             }
 
-            return exits.success({ records: selectRecords });
+            return exits.success({ records: destroyedRecords });
           }
 
           return exits.success();

@@ -25,13 +25,13 @@
     "@sailshq/lodash": "^3.10.2",
     "async": "2.0.1",
     "machine": "^13.0.0-17",
-    "machinepack-mysql": "treelinehq/machinepack-mysql",
-    "waterline-utils": "treelinehq/waterline-utils"
+    "machinepack-mysql": "^1.0.0-1",
+    "waterline-utils": "^1.1.0"
   },
   "devDependencies": {
     "benchmark": "2.1.1",
     "mocha": "3.0.2",
-    "waterline-adapter-tests": "balderdashy/waterline-adapter-tests"
+    "waterline-adapter-tests": "^1.0.0-2"
   },
   "waterlineAdapter": {
     "waterlineVersion": "^0.13.0",

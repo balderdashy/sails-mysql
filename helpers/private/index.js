@@ -17,7 +17,8 @@ module.exports = {
     insertRecord: require('./query/insert-record'),
     processEachRecord: require('./query/process-each-record'),
     runNativeQuery: require('./query/run-native-query'),
-    runQuery: require('./query/run-query')
+    runQuery: require('./query/run-query'),
+    update: require('./query/update')
   },
 
   // Helpers for dealing with underlying database schema

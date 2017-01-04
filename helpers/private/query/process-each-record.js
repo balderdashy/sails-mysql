@@ -54,6 +54,11 @@ module.exports = function processEachRecord(options) {
           }
         }
       }
+
+      // JSON parse any type of JSON column type
+      if (attrVal.type === 'json' && _.has(record, attrName)) {
+        record[attrName] = JSON.parse(record[attrName]);
+      }
     });
   }, false, options.identity, options.orm);
 };

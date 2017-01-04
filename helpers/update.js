@@ -119,18 +119,6 @@ module.exports = require('machine').build({
     }
 
 
-    //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
-    //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
-    //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴
-    // Compile statement into a native query.
-    var compiledQuery;
-    try {
-      compiledQuery = Helpers.query.compileStatement(statement);
-    } catch (e) {
-      return exits.error(e);
-    }
-
-
     //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
     //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
     //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
@@ -147,21 +135,21 @@ module.exports = require('machine').build({
       //  ╦═╗╦ ╦╔╗╔  ┬ ┬┌─┐┌┬┐┌─┐┌┬┐┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║  │ │├─┘ ││├─┤ │ ├┤   │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝  └─┘┴  ─┴┘┴ ┴ ┴ └─┘  └─┘└└─┘└─┘┴└─ ┴
-      Helpers.query.runQuery({
+      Helpers.query.update({
         connection: connection,
-        nativeQuery: compiledQuery,
-        disconnectOnError: leased ? false : true
+        statement: statement,
+        fetch: fetchRecords
       },
 
-      function runQueryCb(err, report) {
-        // The connection will have been disconnected on error already if needed.
-        if (err) {
-          return exits.error(err);
-        }
-
+      function updateRecordCb(err, updatedRecords) {
         // Always release the connection unless a leased connection from outside
         // the adapter was used.
         Helpers.connection.releaseConnection(connection, leased, function cb() {
+          // If there was an error return it.
+          if (err) {
+            return exits.error(err);
+          }
+
           if (fetchRecords) {
             var orm = {
               collections: inputs.models

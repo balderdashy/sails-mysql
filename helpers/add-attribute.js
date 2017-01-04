@@ -116,7 +116,6 @@ module.exports = require('machine').build({
 
       // Build Query
       var query = 'ALTER TABLE ' + tableName + ' ADD COLUMN ' + schema;
-      console.log('QUERY', query);
 
       //  ╦═╗╦ ╦╔╗╔  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║  │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘

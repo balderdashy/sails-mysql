@@ -57,7 +57,7 @@ module.exports = require('machine').build({
   fn: function join(inputs, exits) {
     var _ = require('@sailshq/lodash');
     var async = require('async');
-    var utils = require('waterline-utils');
+    var WLUtils = require('waterline-utils');
     var Helpers = require('./private');
 
     var meta = _.has(inputs.query, 'meta') ? inputs.query.meta : {};
@@ -84,7 +84,7 @@ module.exports = require('machine').build({
     // Attempt to build up the statements necessary for the query.
     var statements;
     try {
-      statements = utils.joins.convertJoinCriteria({
+      statements = WLUtils.joins.convertJoinCriteria({
         query: inputs.query,
         getPk: function getPk(tableName) {
           var model = inputs.models[tableName];
@@ -163,7 +163,7 @@ module.exports = require('machine').build({
         // have been joined and splt them out from the parent.
         var sortedResults;
         try {
-          sortedResults = utils.joins.detectChildrenRecords(primaryKeyAttr, parentResults);
+          sortedResults = WLUtils.joins.detectChildrenRecords(primaryKeyAttr, parentResults);
         } catch (e) {
           // Release the connection if there was an error.
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
@@ -358,6 +358,22 @@ module.exports = require('machine').build({
 
             // Combine records in the cache to form nested results
             var combinedResults = queryCache.combineRecords();
+
+            // Build a fake ORM and process the records.
+            var orm = {
+              collections: inputs.models
+            };
+
+            // Process each record to normalize output
+            try {
+              Helpers.query.processEachRecord({
+                records: combinedResults,
+                identity: model.identity,
+                orm: orm
+              });
+            } catch (e) {
+              return exits.error(e);
+            }
 
             // Return the combined results
             return exits.success(combinedResults);

@@ -62,44 +62,9 @@ module.exports = require('machine').build({
 
 
   fn: function select(inputs, exits) {
-    // Dependencies
-    var _ = require('@sailshq/lodash');
-    var Helpers = require('./private');
-
-    // Set a flag if a leased connection from outside the adapter was used or not.
-    var leased = _.has(inputs.meta, 'leasedConnection');
-
-
-    //  ╔═╗╔═╗╔═╗╦ ╦╔╗╔  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  ╚═╗╠═╝╠═╣║║║║║║  │  │ │││││││├┤ │   │ ││ ││││
-    //  ╚═╝╩  ╩ ╩╚╩╝╝╚╝  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    //  ┌─┐┬─┐  ┬ ┬┌─┐┌─┐  ┬  ┌─┐┌─┐┌─┐┌─┐┌┬┐  ┌─┐┌─┐┌┐┌┌┐┌┌─┐┌─┐┌┬┐┬┌─┐┌┐┌
-    //  │ │├┬┘  │ │└─┐├┤   │  ├┤ ├─┤└─┐├┤  ││  │  │ │││││││├┤ │   │ ││ ││││
-    //  └─┘┴└─  └─┘└─┘└─┘  ┴─┘└─┘┴ ┴└─┘└─┘─┴┘  └─┘└─┘┘└┘┘└┘└─┘└─┘ ┴ ┴└─┘┘└┘
-    // Spawn a new connection for running queries on.
-    Helpers.connection.spawnOrLeaseConnection(inputs.datastore, inputs.meta, function spawnConnectionCb(err, connection) {
-      if (err) {
-        return exits.badConnection(err);
-      }
-
-      var sequenceQuery = 'SELECT setval(' + '\'' + schemaName + '.' + inputs.sequenceName + '\', ' + inputs.sequenceValue + ', true)';
-
-      // Run Sequence Query
-      Helpers.query.runQuery({
-        connection: connection,
-        nativeQuery: sequenceQuery,
-        disconnectOnError: false
-      }, function runQueryCb(err) {
-        // Always release the connection unless a leased connection from outside
-        // the adapter was used.
-        Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
-          if (err) {
-            return exits.error(err);
-          }
-
-          return exits.success();
-        }); // </ releaseConnection >
-      }); // </ runQuery >
-    }); // </ spawnOrLeaseConnection >
+    // Return a no-op.
+    setImmediate(function ensureAsync() {
+      return exits.success();
+    });
   }
 });

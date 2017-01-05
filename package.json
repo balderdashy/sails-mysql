@@ -25,7 +25,7 @@
     "@sailshq/lodash": "^3.10.2",
     "async": "2.0.1",
     "machine": "^13.0.0-17",
-    "machinepack-mysql": "^1.0.0-1",
+    "machinepack-mysql": "^2.0.0-1",
     "waterline-utils": "^1.1.0"
   },
   "devDependencies": {

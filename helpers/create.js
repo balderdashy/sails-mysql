@@ -55,6 +55,11 @@ module.exports = require('machine').build({
     badConnection: {
       friendlyName: 'Bad connection',
       description: 'A connection either could not be obtained or there was an error using the connection.'
+    },
+
+    notUnique: {
+      friendlyName: 'Not Unique',
+      example: '==='
     }
 
   },
@@ -175,6 +180,10 @@ module.exports = require('machine').build({
         Helpers.connection.releaseConnection(connection, leased, function releaseCb() {
           // If there was an error return it.
           if (err) {
+            if (err.footprint && err.footprint.identity === 'notUnique') {
+              return exits.notUnique(err);
+            }
+
             return exits.error(err);
           }
 

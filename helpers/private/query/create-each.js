@@ -161,11 +161,11 @@ module.exports = function createEach(options, cb) {
       select: '*',
       from: options.statement.into,
       where: {},
-      sort: [{}]
+      orderBy: [{}]
     };
 
     // Sort the records by primary key
-    fetchStatement.sort[0][options.primaryKey] = 'ASC';
+    fetchStatement.orderBy[0][options.primaryKey] = 'ASC';
 
     // Build up the WHERE clause for the statement to get the newly inserted
     // records.

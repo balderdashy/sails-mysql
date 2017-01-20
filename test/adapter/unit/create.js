@@ -34,7 +34,9 @@ describe('Unit Tests ::', function() {
           return done(err);
         }
 
-        assert(_.isPlainObject(result));
+        assert(_.isObject(result));
+        assert(!_.isFunction(result));
+        assert(!_.isArray(result));
         assert.equal(result.fieldA, 'foo');
         assert.equal(result.fieldB, 'bar');
         assert(result.id);
@@ -58,7 +60,9 @@ describe('Unit Tests ::', function() {
           return done(err);
         }
 
-        assert(_.isPlainObject(result));
+        assert(_.isObject(result));
+        assert(!_.isFunction(result));
+        assert(!_.isArray(result));
         assert(result.id);
 
         return done();

@@ -77,6 +77,7 @@ module.exports = require('machine').build({
 
     // Grab the primary key attribute for the main table name
     var primaryKeyAttr = model.primaryKey;
+    var primaryKeyColumnName = model.definition[primaryKeyAttr].columnName || primaryKeyAttr;
 
     //  ╔╗ ╦ ╦╦╦  ╔╦╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐┌─┐
     //  ╠╩╗║ ║║║   ║║  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │ └─┐
@@ -92,7 +93,10 @@ module.exports = require('machine').build({
             throw new Error('Invalid parent table name used when caching query results. Perhaps the join criteria is invalid?');
           }
 
-          return model.primaryKey;
+          var pkAttrName = model.primaryKey;
+          var pkColumnName = model.definition[pkAttrName].columnName || pkAttrName;
+
+          return pkColumnName;
         }
       });
     } catch (e) {
@@ -163,7 +167,7 @@ module.exports = require('machine').build({
         // have been joined and splt them out from the parent.
         var sortedResults;
         try {
-          sortedResults = WLUtils.joins.detectChildrenRecords(primaryKeyAttr, parentResults);
+          sortedResults = WLUtils.joins.detectChildrenRecords(primaryKeyColumnName, parentResults);
         } catch (e) {
           // Release the connection if there was an error.
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
@@ -245,7 +249,7 @@ module.exports = require('machine').build({
         // There is more work to be done now. Go through the parent records and
         // build up an array of the primary keys.
         var parentKeys = _.map(queryCache.getParents(), function pluckPk(record) {
-          return record[primaryKeyAttr];
+          return record[primaryKeyColumnName];
         });
 
 

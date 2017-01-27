@@ -65,7 +65,8 @@ module.exports = function initializeQueryCache(options) {
       throw new Error('Invalid parent table name used when caching query results. Perhaps the join criteria is invalid?');
     }
 
-    var pk = model.primaryKey;
+    var pkAttr = model.primaryKey;
+    var pkColumnName = model.definition[pkAttr].columnName || pkAttr;
 
     // Build an alias to use for the association. The alias is the name of the
     // assocation defined by the user. It's created in a model whenever a
@@ -96,8 +97,8 @@ module.exports = function initializeQueryCache(options) {
     _.each(options.sortedResults.parents, function buildAliasCache(parentRecord) {
       var cache = {
         attrName: key,
-        parentPkAttr: pk,
-        belongsToPkValue: parentRecord[pk],
+        parentPkAttr: pkColumnName,
+        belongsToPkValue: parentRecord[pkColumnName],
         keyName: keyName || alias
       };
 

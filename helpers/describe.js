@@ -61,10 +61,6 @@ module.exports = require('machine').build({
     var _ = require('@sailshq/lodash');
     var Helpers = require('./private');
 
-    // Build an object for holding information about the schema
-    var dbSchema = {};
-
-
     // Set a flag if a leased connection from outside the adapter was used or not.
     var leased = _.has(inputs.meta, 'leasedConnection');
 
@@ -140,7 +136,7 @@ module.exports = require('machine').build({
             // Set Type
             schema[column.Field] = {
               // Remove (n) column-size indicators
-              type: column.Type.replace(/\([0-9]+\)$/,'')
+              type: column.Type.replace(/\([0-9]+\)$/, '')
             };
 
             // Check for primary key
@@ -154,7 +150,7 @@ module.exports = require('machine').build({
             }
 
             // If also an integer set auto increment attribute
-            if(column.Type === 'int(11)') {
+            if (column.Type === 'int(11)') {
               schema[column.Field].autoIncrement = true;
             }
 

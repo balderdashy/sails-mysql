@@ -87,7 +87,7 @@ module.exports = function createEach(options, cb) {
         return cb(err);
       }
 
-      return cb(undefined, report.result)
+      return cb(undefined, report.result);
     });
 
     // Return early
@@ -199,7 +199,7 @@ module.exports = function createEach(options, cb) {
         return cb(err);
       }
 
-      return cb(undefined, report.result)
+      return cb(undefined, report.result);
     });
   });
 };

@@ -107,7 +107,7 @@ module.exports = require('machine').build({
     // Loop through every model assigned to the datastore we're registering,
     // and ensure that each one's primary key is either required or auto-incrementing.
     try {
-      _.each(inputs.models, function(modelDef, modelIdentity) {
+      _.each(inputs.models, function checkPrimaryKey(modelDef, modelIdentity) {
         var primaryKeyAttr = modelDef.definition[modelDef.primaryKey];
 
         // Ensure that the model's primary key has either `autoIncrement` or `required`

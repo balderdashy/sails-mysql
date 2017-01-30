@@ -145,7 +145,9 @@ module.exports = function insertRecord(options, cb) {
         return record[options.primaryKey];
       });
 
-      fetchStatement.where[options.primaryKey] = { in: selectPks }
+      fetchStatement.where[options.primaryKey] = {
+        in: selectPks
+      };
 
       //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘

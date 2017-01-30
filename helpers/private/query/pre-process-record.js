@@ -40,13 +40,13 @@ module.exports = function preProcessRecord(options) {
   // Run all the records through the iterator so that they can be normalized.
   eachRecordDeep(options.records, function iterator(record, WLModel) {
     // JSON stringify any type of JSON attributes because MySQL can't store JSON.
-    _.each(WLModel.definition, function checkAttributes(attrVal, attrName) {
-      if (attrVal.type === 'json' && _.has(record, attrName)) {
+    _.each(WLModel.definition, function checkAttributes(attrDef, attrName) {
+      if (attrDef.type === 'json' && _.has(record, attrName)) {
         record[attrName] = JSON.stringify(record[attrName]);
       }
 
       // If the attribute is type ref and not a Buffer then don't allow it.
-      if (attrVal.type === 'ref' && _.has(record, attrName)) {
+      if (attrDef.type === 'ref' && _.has(record, attrName)) {
         var isBuffer = record[attrName] instanceof Buffer;
         if (!isBuffer) {
           throw new Error('One of the values being set has an attribute type of `ref` but the value is not a Buffer. This adapter only accepts buffers for type `ref`. If you would like to store other types of data perhaps use type `json`.');

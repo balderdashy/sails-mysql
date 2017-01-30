@@ -92,6 +92,27 @@ module.exports = require('machine').build({
     var fetchRecords = false;
 
 
+    // Build a faux ORM for use in processEachRecords
+    var fauxOrm = {
+      collections: inputs.models
+    };
+
+
+    //  ╔═╗╦═╗╔═╗  ╔═╗╦═╗╔═╗╔═╗╔═╗╔═╗╔═╗  ┬─┐┌─┐┌─┐┌─┐┬─┐┌┬┐┌─┐
+    //  ╠═╝╠╦╝║╣───╠═╝╠╦╝║ ║║  ║╣ ╚═╗╚═╗  ├┬┘├┤ │  │ │├┬┘ ││└─┐
+    //  ╩  ╩╚═╚═╝  ╩  ╩╚═╚═╝╚═╝╚═╝╚═╝╚═╝  ┴└─└─┘└─┘└─┘┴└──┴┘└─┘
+    // Process each record to normalize output
+    try {
+      Helpers.query.preProcessRecord({
+        records: [query.valuesToSet],
+        identity: model.identity,
+        orm: fauxOrm
+      });
+    } catch (e) {
+      return exits.error(e);
+    }
+
+
     //  ╔═╗╔═╗╔╗╔╦  ╦╔═╗╦═╗╔╦╗  ┌┬┐┌─┐  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐
     //  ║  ║ ║║║║╚╗╔╝║╣ ╠╦╝ ║    │ │ │  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
     //  ╚═╝╚═╝╝╚╝ ╚╝ ╚═╝╩╚═ ╩    ┴ └─┘  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
@@ -166,16 +187,12 @@ module.exports = require('machine').build({
           }
 
           if (fetchRecords) {
-            var orm = {
-              collections: inputs.models
-            };
-
             // Process each record to normalize output
             try {
               Helpers.query.processEachRecord({
                 records: updatedRecords,
                 identity: model.identity,
-                orm: orm
+                orm: fauxOrm
               });
             } catch (e) {
               return exits.error(e);

@@ -44,6 +44,14 @@ module.exports = function preProcessRecord(options) {
       if (attrVal.type === 'json' && _.has(record, attrName)) {
         record[attrName] = JSON.stringify(record[attrName]);
       }
+
+      // If the attribute is type ref and not a Buffer then don't allow it.
+      if (attrVal.type === 'ref' && _.has(record, attrName)) {
+        var isBuffer = record[attrName] instanceof Buffer;
+        if (!isBuffer) {
+          throw new Error('One of the values being set has an attribute type of `ref` but the value is not a Buffer. This adapter only accepts buffers for type `ref`. If you would like to store other types of data perhaps use type `json`.');
+        }
+      }
     });
   }, false, options.identity, options.orm);
 };

@@ -93,6 +93,25 @@ describe('Unit Tests ::', function() {
       });
     });
 
+    it('should error for type ref on non buffers', function(done) {
+      var query = {
+        using: 'test_create',
+        newRecord: {
+          fieldA: 'Foo',
+          fieldB: 'bAr',
+          fieldC: 'baz'
+        },
+        meta: {
+          fetch: true
+        }
+      };
+
+      Adapter.create('test', query, function(err, result) {
+        assert(err);
+        return done();
+      });
+    });
+
     // Look into the bowels of the PG Driver and ensure the Create function handles
     // it's connections properly.
     it('should release it\'s connection when completed', function(done) {

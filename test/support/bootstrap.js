@@ -51,6 +51,13 @@ Support.Definition = {
     autoMigrations: {
       columnType: 'text'
     }
+  },
+  fieldC: {
+    type: 'ref',
+    columnName: 'fieldC',
+    autoMigrations: {
+      columnType: 'text'
+    }
   }
 };
 

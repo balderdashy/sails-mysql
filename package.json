@@ -5,6 +5,9 @@
   "main": "lib/adapter.js",
   "scripts": {
     "test": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && NODE_ENV=test node test/adapter/integration/runner",
+    "fasttest": "NODE_ENV=test node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive",
+    "pretest": "npm run lint",
+    "lint": "eslint lib helpers test",
     "docker": "docker-compose run adapter bash",
     "benchmark": "node ./node_modules/mocha/bin/mocha test/benchmarks --recursive"
   },
@@ -30,6 +33,7 @@
   },
   "devDependencies": {
     "benchmark": "2.1.1",
+    "eslint": "3.5.0",
     "mocha": "3.0.2",
     "waterline-adapter-tests": "^1.0.0-2"
   },

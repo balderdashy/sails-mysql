@@ -106,7 +106,7 @@ describe('Unit Tests ::', function() {
         }
       };
 
-      Adapter.create('test', query, function(err, result) {
+      Adapter.create('test', query, function(err) {
         assert(err);
         return done();
       });

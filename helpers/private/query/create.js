@@ -54,7 +54,9 @@ module.exports = function createEach(options, cb) {
   // Run the initial query (bulk insert)
   runQuery({
     connection: options.connection,
-    nativeQuery: compiledQuery,
+    nativeQuery: compiledQuery.nativeQuery,
+    valuesToEscape: compiledQuery.valuesToEscape,
+    meta: compiledQuery.meta,
     disconnectOnError: false,
     queryType: 'insert'
   },
@@ -103,7 +105,9 @@ module.exports = function createEach(options, cb) {
     // Run the fetch query.
     runQuery({
       connection: options.connection,
-      nativeQuery: compiledQuery,
+      nativeQuery: compiledQuery.nativeQuery,
+      valuesToEscape: compiledQuery.valuesToEscape,
+      meta: compiledQuery.meta,
       disconnectOnError: false,
       queryType: 'select'
     }, function runQueryCb(err, report) {

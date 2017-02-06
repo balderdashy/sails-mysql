@@ -95,7 +95,7 @@ module.exports = require('machine').build({
       //  ╦═╗╦ ╦╔╗╔  ┌┬┐┬─┐┌─┐┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║   ││├┬┘│ │├─┘  │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝  ─┴┘┴└─└─┘┴    └─┘└└─┘└─┘┴└─ ┴
-      Helpers.query.runNativeQuery(connection, query, function runNativeQueryCb(err) {
+      Helpers.query.runNativeQuery(connection, query, [], undefined, function runNativeQueryCb(err) {
         // Always release the connection back to the pool
         Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
           if (err) {

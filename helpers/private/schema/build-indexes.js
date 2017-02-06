@@ -58,6 +58,6 @@ module.exports = function buildIndexes(options, cb) {
     var query = 'CREATE INDEX ' + escapeTableName(cleanTable + '_' + name) + ' on ' + options.tableName + ' (' + escapeTableName(name) + ');';
 
     // Run the native query
-    runNativeQuery(options.connection, query, nextIndex);
+    runNativeQuery(options.connection, query, [], undefined, nextIndex);
   }, cb);
 };

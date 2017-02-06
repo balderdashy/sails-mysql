@@ -112,9 +112,9 @@ module.exports = require('machine').build({
     //  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
     // Convert the parent statement into a native query. If the query can be run
     // in a single query then this will be the only query that runs.
-    var nativeQuery;
+    var compiledQuery;
     try {
-      nativeQuery = Helpers.query.compileStatement(statements.parentStatement);
+      compiledQuery = Helpers.query.compileStatement(statements.parentStatement);
     } catch (e) {
       return exits.error(e);
     }
@@ -136,7 +136,7 @@ module.exports = require('machine').build({
       //  ╦═╗╦ ╦╔╗╔  ┌┬┐┬ ┬┌─┐  ┌┐┌┌─┐┌┬┐┬┬  ┬┌─┐  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ╠╦╝║ ║║║║   │ ├─┤├┤   │││├─┤ │ │└┐┌┘├┤   │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╩╚═╚═╝╝╚╝   ┴ ┴ ┴└─┘  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
-      Helpers.query.runNativeQuery(connection, nativeQuery, function parentQueryCb(err, parentResults) {
+      Helpers.query.runNativeQuery(connection, compiledQuery.nativeQuery, compiledQuery.valuesToEscape, compiledQuery.meta, function parentQueryCb(err, parentResults) {
         if (err) {
           // Release the connection on error
           Helpers.connection.releaseConnection(connection, leased, function releaseConnectionCb() {
@@ -327,9 +327,9 @@ module.exports = require('machine').build({
           //  ║  ║ ║║║║╠═╝║║  ║╣   └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │
           //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴
           // Attempt to convert the statement into a native query
-          var nativeQuery;
+          var compiledQuery;
           try {
-            nativeQuery = Helpers.query.compileStatement(template.statement);
+            compiledQuery = Helpers.query.compileStatement(template.statement);
           } catch (e) {
             return next(e);
           }
@@ -339,7 +339,7 @@ module.exports = require('machine').build({
           //  ╠╦╝║ ║║║║  │  ├─┤││   ││  │─┼┐│ │├┤ ├┬┘└┬┘
           //  ╩╚═╚═╝╝╚╝  └─┘┴ ┴┴┴─┘─┴┘  └─┘└└─┘└─┘┴└─ ┴
           // Run the native query
-          Helpers.query.runNativeQuery(connection, nativeQuery, function parentQueryCb(err, queryResults) {
+          Helpers.query.runNativeQuery(connection, compiledQuery.nativeQuery, compiledQuery.valuesToEscape, compiledQuery.meta, function parentQueryCb(err, queryResults) {
             if (err) {
               return next(err);
             }

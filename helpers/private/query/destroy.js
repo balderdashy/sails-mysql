@@ -76,7 +76,9 @@ module.exports = function insertRecord(options, cb) {
     // Run the initial find query
     runQuery({
       connection: options.connection,
-      nativeQuery: compiledFetchQuery,
+      nativeQuery: compiledFetchQuery.nativeQuery,
+      valuesToEscape: compiledFetchQuery.valuesToEscape,
+      meta: compiledFetchQuery.meta,
       disconnectOnError: false,
       queryType: 'select'
     },
@@ -111,7 +113,9 @@ module.exports = function insertRecord(options, cb) {
     // Run the destroy query
     runQuery({
       connection: options.connection,
-      nativeQuery: compiledUpdateQuery,
+      nativeQuery: compiledUpdateQuery.nativeQuery,
+      valuesToEscape: compiledUpdateQuery.valuesToEscape,
+      meta: compiledUpdateQuery.meta,
       disconnectOnError: false,
       queryType: 'destroy'
     },

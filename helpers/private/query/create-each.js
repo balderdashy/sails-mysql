@@ -65,7 +65,7 @@ module.exports = function createEach(options, cb) {
     // Compile the statement into a native query.
     var compiledQuery;
     try {
-      compiledQuery = compileStatement(options.statement);
+      compiledQuery = compileStatement(options.statement, options.meta);
     } catch (e) {
       // If the statement could not be compiled, return an error.
       return cb(e);
@@ -77,7 +77,9 @@ module.exports = function createEach(options, cb) {
     // Run the initial query (bulk insert)
     runQuery({
       connection: options.connection,
-      nativeQuery: compiledQuery,
+      nativeQuery: compiledQuery.nativeQuery,
+      valuesToEscape: compiledQuery.valuesToEscape,
+      meta: compiledQuery.meta,
       disconnectOnError: false,
       queryType: 'insert'
     },
@@ -133,7 +135,9 @@ module.exports = function createEach(options, cb) {
     // Run the initial query (bulk insert)
     runQuery({
       connection: options.connection,
-      nativeQuery: compiledQuery,
+      nativeQuery: compiledQuery.nativeQuery,
+      valuesToEscape: compiledQuery.valuesToEscape,
+      meta: compiledQuery.meta,
       disconnectOnError: false,
       queryType: 'insert'
     }, function runQueryCb(err, report) {
@@ -191,7 +195,9 @@ module.exports = function createEach(options, cb) {
     // Run the fetch query.
     runQuery({
       connection: options.connection,
-      nativeQuery: compiledQuery,
+      nativeQuery: compiledQuery.nativeQuery,
+      valuesToEscape: compiledQuery.valuesToEscape,
+      meta: compiledQuery.meta,
       disconnectOnError: false,
       queryType: 'select'
     }, function runQueryCb(err, report) {

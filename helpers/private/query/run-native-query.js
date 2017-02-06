@@ -17,10 +17,12 @@
 var _ = require('@sailshq/lodash');
 var MySQL = require('machinepack-mysql');
 
-module.exports = function runNativeQuery(connection, query, cb) {
+module.exports = function runNativeQuery(connection, query, valuesToEscape, meta, cb) {
   MySQL.sendNativeQuery({
     connection: connection,
-    nativeQuery: query
+    nativeQuery: query,
+    valuesToEscape: valuesToEscape,
+    meta: meta
   })
   .exec({
     error: function error(err) {

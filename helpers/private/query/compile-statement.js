@@ -16,10 +16,11 @@
 
 var MySQL = require('machinepack-mysql');
 
-module.exports = function compileStatement(statement) {
+module.exports = function compileStatement(statement, meta) {
   var report = MySQL.compileStatement({
-    statement: statement
+    statement: statement,
+    meta: meta
   }).execSync();
 
-  return report.nativeQuery;
+  return report;
 };

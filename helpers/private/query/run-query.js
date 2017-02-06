@@ -33,7 +33,9 @@ module.exports = function runQuery(options, cb) {
   //  ╩╚═╚═╝╝╚╝  ┘└┘┴ ┴ ┴ ┴ └┘ └─┘  └─┘└└─┘└─┘┴└─ ┴
   MySQL.sendNativeQuery({
     connection: options.connection,
-    nativeQuery: options.nativeQuery
+    nativeQuery: options.nativeQuery,
+    valuesToEscape: options.valuesToEscape,
+    meta: options.meta
   })
   .exec({
     // If there was an error, check if the connection should be

@@ -32,9 +32,9 @@ install:
 # Post-install test scripts.
 test_script:
   # Setup database
-  - $env:MYSQL_PWD="Password12!"
-  - $cmd = '"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql" -e "create database adapter_tests;" --user=root'
-  - iex "& $cmd"
+  - SET MYSQL_PWD="Password12!"
+  - PATH=C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql;%PATH%
+  - create database adapter_tests --user=root
 
   # Output Node and NPM version info.
   # (Presumably just in case Appveyor decides to try any funny business?

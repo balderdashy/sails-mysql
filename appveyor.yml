@@ -31,14 +31,22 @@ install:
 
 # Post-install test scripts.
 test_script:
+  # Setup database
+  - $env:MYSQL_PWD="Password12!"
+  - $cmd = '"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql" -e "create database adapter-tests;" --user=root'
+  - iex "& $cmd"
+
   # Output Node and NPM version info.
   # (Presumably just in case Appveyor decides to try any funny business?
   #  But seriously, always good to audit this kind of stuff for debugging.)
   - node --version
   - npm --version
   # Run the actual tests.
-  - npm test
+  - npm run fasttest
 
+# Setup MySQL Database
+services:
+  - mysql
 
 # Don't actually build.
 # (Not sure what this is for, it's just in Appveyor's example.

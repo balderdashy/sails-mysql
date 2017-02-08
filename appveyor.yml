@@ -33,7 +33,7 @@ install:
 test_script:
   # Setup database
   - $env:MYSQL_PWD="Password12!"
-  - $cmd = '"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql" -e "create database adapter-tests;" --user=root'
+  - $cmd = '"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql" -e "create database adapter_tests;" --user=root'
   - iex "& $cmd"
 
   # Output Node and NPM version info.

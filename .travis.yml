@@ -47,9 +47,9 @@ branches:
 services: mysql
 sudo: false
 before_script:
-  - mysql -e 'create database \'adapter-tests\';'
+  - mysql -e 'create database adapter_tests;'
 env:
-  - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=root WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter-tests
+  - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=root WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter_tests
 notifications:
   email:
     - ci@sailsjs.com

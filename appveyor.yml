@@ -32,7 +32,7 @@ install:
 # Post-install test scripts.
 test_script:
   # Setup database
-  - 'C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql -u root -p"Password12!" -e "CREATE DATABASE IF NOT EXISTS adapter_tests"'
+  - '"C:\Program Files\MySQL\MySQL Server 5.7\bin\mysql" -u root -p"Password12!" -e "CREATE DATABASE IF NOT EXISTS adapter_tests"'
 
   # Output Node and NPM version info.
   # (Presumably just in case Appveyor decides to try any funny business?

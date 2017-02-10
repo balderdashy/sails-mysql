@@ -57,8 +57,16 @@ module.exports = function processEachRecord(options) {
 
       // JSON parse any type of JSON column type
       if (attrVal.type === 'json' && _.has(record, attrName)) {
+
+        // Special case: If it came back as the `null` literal, leave it alone
+        if (_.isNull(record[attrName])) {
+          return;
+        }
+
+        // But otherwise, assume it's a JSON string and try to parse it
         record[attrName] = JSON.parse(record[attrName]);
       }
+
     });
   }, false, options.identity, options.orm);
 };

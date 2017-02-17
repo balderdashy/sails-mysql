@@ -233,6 +233,22 @@ module.exports = require('machine').build({
               return exits.error(e);
             }
 
+            // Build a fake ORM and process the records.
+            var orm = {
+              collections: inputs.models
+            };
+
+            // Process each record to normalize output
+            try {
+              Helpers.query.processEachRecord({
+                records: combinedResults,
+                identity: model.identity,
+                orm: orm
+              });
+            } catch (e) {
+              return exits.error(e);
+            }
+
             // Return the combined results
             exits.success(combinedResults);
           });

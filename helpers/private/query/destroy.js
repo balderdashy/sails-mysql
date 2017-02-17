@@ -54,7 +54,7 @@ module.exports = function insertRecord(options, cb) {
     // Otherwise build up a select query
     var fetchStatement = {
       select: [options.primaryKey],
-      from: options.statement.using,
+      from: options.statement.from,
       where: options.statement.where
     };
 

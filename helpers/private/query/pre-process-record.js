@@ -52,7 +52,12 @@ module.exports = function preProcessRecord(options) {
 
   // Run all the new, incoming records through the iterator so that they can be normalized
   // with anything adapter-specific before getting written to the database.
-  eachRecordDeep(options.records, function iterator(record, WLModel) {
+  // > (This should *never* go more than one level deep!)
+  eachRecordDeep(options.records, function iterator(record, WLModel, depth) {
+    if (depth !== 1) {
+      throw new Error('Consistency violation: Incoming new records in a s3q should never necessitate deep iteration!  If you are seeing this error, it is probably because of a bug in this adapter, or in Waterline core.');
+    }
+
     _.each(WLModel.definition, function checkAttributes(attrDef, attrName) {
 
       // JSON stringify the values provided for any `type: 'json'` attributes

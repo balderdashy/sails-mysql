@@ -76,5 +76,5 @@ module.exports = function preProcessRecord(options) {
         }
       }
     });
-  }, false, options.identity, options.orm);
+  }, true, options.identity, options.orm);
 };

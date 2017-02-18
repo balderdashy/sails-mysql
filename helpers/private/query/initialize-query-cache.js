@@ -99,7 +99,8 @@ module.exports = function initializeQueryCache(options) {
         attrName: key,
         parentPkAttr: pkColumnName,
         belongsToPkValue: parentRecord[pkColumnName],
-        keyName: keyName || alias
+        keyName: keyName || alias,
+        type: strategy
       };
 
       // Grab the join keys used in the query

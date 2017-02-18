@@ -79,6 +79,11 @@ module.exports = require('machine').build({
     var primaryKeyAttr = model.primaryKey;
     var primaryKeyColumnName = model.definition[primaryKeyAttr].columnName || primaryKeyAttr;
 
+    // Build a fake ORM and process the records.
+    var orm = {
+      collections: inputs.models
+    };
+
     //  ╔╗ ╦ ╦╦╦  ╔╦╗  ┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┬┐┌─┐┌┐┌┌┬┐┌─┐
     //  ╠╩╗║ ║║║   ║║  └─┐ │ ├─┤ │ ├┤ │││├┤ │││ │ └─┐
     //  ╚═╝╚═╝╩╩═╝═╩╝  └─┘ ┴ ┴ ┴ ┴ └─┘┴ ┴└─┘┘└┘ ┴ └─┘
@@ -233,6 +238,17 @@ module.exports = require('machine').build({
               return exits.error(e);
             }
 
+            // Process each record to normalize output
+            try {
+              Helpers.query.processEachRecord({
+                records: combinedResults,
+                identity: model.identity,
+                orm: orm
+              });
+            } catch (e) {
+              return exits.error(e);
+            }
+
             // Return the combined results
             exits.success(combinedResults);
           });
@@ -362,11 +378,6 @@ module.exports = require('machine').build({
 
             // Combine records in the cache to form nested results
             var combinedResults = queryCache.combineRecords();
-
-            // Build a fake ORM and process the records.
-            var orm = {
-              collections: inputs.models
-            };
 
             // Process each record to normalize output
             try {

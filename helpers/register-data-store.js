@@ -178,6 +178,7 @@ module.exports = require('machine').build({
         identity: identity,
         tableName: tableName,
         definition: definition,
+        attributes: definition,
         primaryKey: val.primaryKey
       };
     });

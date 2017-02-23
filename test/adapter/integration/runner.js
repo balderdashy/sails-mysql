@@ -64,14 +64,30 @@ new TestRunner({
   adapter: Adapter,
 
   // Default connection config to use.
-  config: {
-    host: process.env.MYSQL_PORT_3306_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost',
-    port: process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306,
-    user: process.env.MYSQL_ENV_MYSQL_USER || process.env.WATERLINE_ADAPTER_TESTS_USER || 'root',
-    password: process.env.MYSQL_ENV_MYSQL_PASSWORD || process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || process.env.MYSQL_PWD || '',
-    database: process.env.MYSQL_ENV_MYSQL_DATABASE || process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'adapter_tests',
-    schema: true
-  },
+  config: (function(){
+    var config = {
+      schema: true,
+    };
+
+    if (process.env.WATERLINE_ADAPTER_TESTS_URL) {
+      config.url = process.env.WATERLINE_ADAPTER_TESTS_URL;
+      return config;
+    }//‡-•
+    else if (process.env.MYSQL_PORT_3306_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || process.env.WATERLINE_ADAPTER_TESTS_PORT || process.env.MYSQL_ENV_MYSQL_USER || process.env.WATERLINE_ADAPTER_TESTS_USER || process.env.MYSQL_ENV_MYSQL_PASSWORD || process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || process.env.MYSQL_PWD || process.env.MYSQL_ENV_MYSQL_DATABASE || process.env.WATERLINE_ADAPTER_TESTS_DATABASE) {
+      console.warn('Traditional env vars for configuring WAT (waterline adapter tests) are no longer supported.  Instead, please use the `WATERLINE_ADAPTER_TESTS_URL` env var to specify a connection URL (e.g. `WATERLINE_ADAPTER_TESTS_URL=mysql://root@localhost:1337/adapter_tests npm test`).  See **Reference > Configuration > sails.config.datastores** in the Sails docs for more information and examples on using connection URLs.');
+      console.warn('(Trying to make it work for you this time...)');
+      config.host = process.env.MYSQL_PORT_3306_TCP_ADDR || process.env.WATERLINE_ADAPTER_TESTS_HOST || 'localhost';
+      config.port = process.env.WATERLINE_ADAPTER_TESTS_PORT || 3306;
+      config.user = process.env.MYSQL_ENV_MYSQL_USER || process.env.WATERLINE_ADAPTER_TESTS_USER || 'root';
+      config.password = process.env.MYSQL_ENV_MYSQL_PASSWORD || process.env.WATERLINE_ADAPTER_TESTS_PASSWORD || process.env.MYSQL_PWD || '';
+      config.database = process.env.MYSQL_ENV_MYSQL_DATABASE || process.env.WATERLINE_ADAPTER_TESTS_DATABASE || 'adapter_tests';
+      return config;
+    }//‡-•
+    else {
+      throw new Error('Please use the `WATERLINE_ADAPTER_TESTS_URL` env var to specify a connection URL (e.g. `WATERLINE_ADAPTER_TESTS_URL=mysql://root@localhost:1337/adapter_tests npm test`).  See **Reference > Configuration > sails.config.datastores** in the Sails docs for more information and examples on using connection URLs.');
+    }
+
+  })(),
 
   failOnError: true,
   // The set of adapter interfaces to test against.

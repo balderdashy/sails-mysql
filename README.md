@@ -30,7 +30,17 @@ Please observe the guidelines and conventions laid out in the [Sails project con
 [![NPM](https://nodei.co/npm/sails-mysql.png?downloads=true)](http://npmjs.com/package/sails-mysql)
 
 
+#### Running the tests
+
+To run the tests, point this adapter at your database by specifying connection URL and then use `npm test`:
+
+```
+WATERLINE_ADAPTER_TESTS_URL=mysql://root:myc00lP4ssw0rD@localhost/adapter_tests npm test
+```
+
+> For more info, see [**Reference > Configuration > sails.config.datastores > The connection URL**](http://sailsjs.com/documentation/reference/configuration/sails-config-datastores#?the-connection-url), or [ask for help](http://sailsjs.com/support).
+
 ## License
 
-The [Sails framework](http://sailsjs.com) is free and open-source under the [MIT License](http://sailsjs.com/license).
+This adapter, like the [Sails framework](http://sailsjs.com) is free and open-source under the [MIT License](http://sailsjs.com/license).
 

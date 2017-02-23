@@ -32,7 +32,7 @@ Please observe the guidelines and conventions laid out in the [Sails project con
 
 #### Running the tests
 
-To run the tests, point this adapter at your database by specifying connection URL and then use `npm test`:
+To run the tests, point this adapter at your database by specifying a [connection URL](http://sailsjs.com/documentation/reference/configuration/sails-config-datastores#?the-connection-url) and run `npm test`:
 
 ```
 WATERLINE_ADAPTER_TESTS_URL=mysql://root:myc00lP4ssw0rD@localhost/adapter_tests npm test

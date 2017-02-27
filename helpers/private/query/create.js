@@ -52,16 +52,24 @@ module.exports = function createEach(options, cb) {
   //  ╠╦╝║ ║║║║  │─┼┐│ │├┤ ├┬┘└┬┘
   //  ╩╚═╚═╝╝╚╝  └─┘└└─┘└─┘┴└─ ┴
   // Run the initial query (bulk insert)
-  runQuery({
+
+  var insertOptions = {
     connection: options.connection,
     nativeQuery: compiledQuery.nativeQuery,
     valuesToEscape: compiledQuery.valuesToEscape,
     meta: compiledQuery.meta,
     disconnectOnError: false,
     queryType: 'insert'
-  },
+  };
 
-  function runQueryCb(err, report) {
+  // Determine if a custom primary key value was used. If so pass it down so that
+  // the report can be used correctly. MySQL doesn't return these values.
+  if (options.statement.insert[options.primaryKey]) {
+    insertOptions.customPrimaryKey = options.statement.insert[options.primaryKey];
+  }
+
+
+  runQuery(insertOptions, function runQueryCb(err, report) {
     if (err) {
       return cb(err);
     }

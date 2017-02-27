@@ -57,7 +57,8 @@ new TestRunner({
 
   // Mocha opts
   mocha: {
-    bail: false
+    bail: false,
+    timeout: 20000
   },
 
   // Load the adapter module.

@@ -96,6 +96,18 @@ module.exports = function runQuery(options, cb) {
       });
     },
     success: function success(report) {
+      // If a custom primary key was used and the record has an `insert` query
+      // type, build a manual insert report because we don't have the actual
+      // value that was used.
+      if (options.customPrimaryKey) {
+        return cb(null, {
+          result: {
+            inserted: options.customPrimaryKey
+          }
+        });
+      }
+
+
       //  ╔═╗╔═╗╦═╗╔═╗╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬  ┬─┐┌─┐┌─┐┬ ┬┬ ┌┬┐┌─┐
       //  ╠═╝╠═╣╠╦╝╚═╗║╣   │─┼┐│ │├┤ ├┬┘└┬┘  ├┬┘├┤ └─┐│ ││  │ └─┐
       //  ╩  ╩ ╩╩╚═╚═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴   ┴└─└─┘└─┘└─┘┴─┘┴ └─┘

@@ -50,29 +50,31 @@ module.exports = function processEachRecord(options) {
     // Check if the record and the model contain any boolean types.
     // Because MySQL returns these as binary (0, 1) they must be
     // transformed into true/false values.
-    _.each(WLModel.definition, function checkAttributes(attrVal, attrName) {
-      if (attrVal.type === 'boolean' && _.has(record, attrName)) {
-        if (!_.isBoolean(record[attrName])) {
-          if (record[attrName] === 0) {
-            record[attrName] = false;
+    _.each(WLModel.definition, function checkAttributes(attrDef) {
+      var columnName = attrDef.columnName;
+
+      if (attrDef.type === 'boolean' && _.has(record, columnName)) {
+        if (!_.isBoolean(record[columnName])) {
+          if (record[columnName] === 0) {
+            record[columnName] = false;
           }
 
-          if (record[attrName] === 1) {
-            record[attrName] = true;
+          if (record[columnName] === 1) {
+            record[columnName] = true;
           }
         }
       }
 
       // JSON parse any type of JSON column type
-      if (attrVal.type === 'json' && _.has(record, attrName)) {
+      if (attrDef.type === 'json' && _.has(record, columnName)) {
 
         // Special case: If it came back as the `null` literal, leave it alone
-        if (_.isNull(record[attrName])) {
+        if (_.isNull(record[columnName])) {
           return;
         }
 
         // But otherwise, assume it's a JSON string and try to parse it
-        record[attrName] = JSON.parse(record[attrName]);
+        record[columnName] = JSON.parse(record[columnName]);
       }
 
     });

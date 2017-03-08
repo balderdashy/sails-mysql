@@ -66,24 +66,25 @@ module.exports = function preProcessRecord(options) {
       throw new Error('Consistency violation: Incoming new records in a s3q should never necessitate deep iteration!  If you are seeing this error, it is probably because of a bug in this adapter, or in Waterline core.');
     }
 
-    _.each(WLModel.definition, function checkAttributes(attrDef, attrName) {
+    _.each(WLModel.definition, function checkAttributes(attrDef) {
+      var columnName = attrDef.columnName;
 
       // JSON stringify the values provided for any `type: 'json'` attributes
       // because MySQL can't store JSON.
-      if (attrDef.type === 'json' && _.has(record, attrName)) {
+      if (attrDef.type === 'json' && _.has(record, columnName)) {
 
         // Special case: If this is the `null` literal, leave it alone.
         // But otherwise, stringify it into a JSON string.
         // (even if it's already a string!)
-        if (!_.isNull(record[attrName])) {
-          record[attrName] = JSON.stringify(record[attrName]);
+        if (!_.isNull(record[columnName])) {
+          record[columnName] = JSON.stringify(record[columnName]);
         }
 
       }//>-
 
       // If the attribute is type ref and not a Buffer then don't allow it.
-      if (attrDef.type === 'ref' && _.has(record, attrName) && !_.isNull(record[attrName])) {
-        var isBuffer = record[attrName] instanceof Buffer;
+      if (attrDef.type === 'ref' && _.has(record, columnName) && !_.isNull(record[columnName])) {
+        var isBuffer = record[columnName] instanceof Buffer;
         if (!isBuffer) {
           throw new Error('One of the values being set has an attribute type of `ref` but the value is not a Buffer. This adapter only accepts buffers for type `ref`. If you would like to store other types of data perhaps use type `json`.');
         }

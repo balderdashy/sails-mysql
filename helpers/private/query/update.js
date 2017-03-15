@@ -153,6 +153,23 @@ module.exports = function insertRecord(options, cb) {
         in: selectPks
       };
 
+
+      // Handle case where pk value was changed:
+      if (!_.isUndefined(options.statement.update[options.primaryKey])) {
+        // There should only ever be either zero or one record that were found before.
+        if (selectPks.length === 0) { /* do nothing */ }
+        else if (selectPks.length === 1) {
+          var oldPkValue = selectPks[0];
+          _.remove(fetchStatement.where[options.primaryKey].in, oldPkValue);
+          var newPkValue = options.statement.update[options.primaryKey];
+          fetchStatement.where[options.primaryKey].in.push(newPkValue);
+        }
+        else {
+          return cb(new Error('Consistency violation: Updated multiple records to have the same primary key value. (PK values should be unique!)'));
+        }
+      }
+
+
       //  ╔═╗╔═╗╔╦╗╔═╗╦╦  ╔═╗  ┌─┐ ┬ ┬┌─┐┬─┐┬ ┬
       //  ║  ║ ║║║║╠═╝║║  ║╣   │─┼┐│ │├┤ ├┬┘└┬┘
       //  ╚═╝╚═╝╩ ╩╩  ╩╩═╝╚═╝  └─┘└└─┘└─┘┴└─ ┴

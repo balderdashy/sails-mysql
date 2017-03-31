@@ -36,11 +36,11 @@ module.exports = function buildSchema(definition) {
       case '_boolean':
         return 'BOOLEAN';
       case '_json':
-        return 'TEXT';
+        return 'LONGTEXT';
       case '_ref':
-        return 'TEXT';
+        return 'LONGTEXT';
       case 'json':
-        return 'TEXT';
+        return 'LONGTEXT';
       case 'varchar':
         return 'VARCHAR(255)';
 

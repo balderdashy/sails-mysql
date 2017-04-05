@@ -17,10 +17,11 @@ module.exports = function buildSchema(definition) {
   //  ╔╗╔╔═╗╦═╗╔╦╗╔═╗╦  ╦╔═╗╔═╗  ┌┬┐┬ ┬┌─┐┌─┐
   //  ║║║║ ║╠╦╝║║║╠═╣║  ║╔═╝║╣    │ └┬┘├─┘├┤
   //  ╝╚╝╚═╝╩╚═╩ ╩╩ ╩╩═╝╩╚═╝╚═╝   ┴  ┴ ┴  └─┘
+  // TODO: move this code inline to eliminate unnecessary function declaration
   var normalizeType = function normalizeType(type) {
     switch (type.toLowerCase()) {
 
-      // Default types from sails-hook-orm.
+      // Default types from sails-hook-orm (for automigrations)
       case '_number':
         return 'REAL';
       case '_numberkey':
@@ -28,7 +29,7 @@ module.exports = function buildSchema(definition) {
       case '_numbertimestamp':
         return 'BIGINT';
       case '_string':
-        return 'VARCHAR(255)';
+        return 'VARCHAR(255) CHARACTER SET utf8mb4';
       case '_stringkey':
         return 'VARCHAR(255)';
       case '_stringtimestamp':
@@ -36,9 +37,12 @@ module.exports = function buildSchema(definition) {
       case '_boolean':
         return 'BOOLEAN';
       case '_json':
-        return 'LONGTEXT';
+        return 'LONGTEXT CHARACTER SET utf8mb4';
       case '_ref':
-        return 'LONGTEXT';
+        return 'LONGTEXT CHARACTER SET utf8mb4';
+        
+      // Sensible MySQL-specific defaults for common things folks might try to use.
+      // (FUTURE: log warnings suggesting proper usage when any of these synonyms are invoked)
       case 'json':
         return 'LONGTEXT';
       case 'varchar':

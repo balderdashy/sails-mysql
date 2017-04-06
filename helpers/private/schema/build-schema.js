@@ -40,7 +40,7 @@ module.exports = function buildSchema(definition) {
         return 'LONGTEXT CHARACTER SET utf8mb4';
       case '_ref':
         return 'LONGTEXT CHARACTER SET utf8mb4';
-        
+
       // Sensible MySQL-specific defaults for common things folks might try to use.
       // (FUTURE: log warnings suggesting proper usage when any of these synonyms are invoked)
       case 'json':

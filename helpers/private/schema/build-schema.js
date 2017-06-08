@@ -29,7 +29,7 @@ module.exports = function buildSchema(definition) {
       case '_numbertimestamp':
         return 'BIGINT';
       case '_string':
-        return 'VARCHAR(255) CHARACTER SET utf8mb4';
+        return 'VARCHAR(255)';
       case '_stringkey':
         return 'VARCHAR(255)';
       case '_stringtimestamp':
@@ -37,9 +37,9 @@ module.exports = function buildSchema(definition) {
       case '_boolean':
         return 'BOOLEAN';
       case '_json':
-        return 'LONGTEXT CHARACTER SET utf8mb4';
+        return 'LONGTEXT';
       case '_ref':
-        return 'LONGTEXT CHARACTER SET utf8mb4';
+        return 'LONGTEXT';
 
       // Sensible MySQL-specific defaults for common things folks might try to use.
       // (FUTURE: log warnings suggesting proper usage when any of these synonyms are invoked)

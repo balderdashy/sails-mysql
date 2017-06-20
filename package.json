@@ -1,6 +1,6 @@
 {
   "name": "sails-mysql",
-  "version": "0.11.6",
+  "version": "0.11.7",
   "description": "MySQL adapter for Sails.js",
   "main": "lib/adapter.js",
   "scripts": {
@@ -26,7 +26,7 @@
     "mysql": "2.10.2",
     "waterline-cursor": "0.0.6",
     "waterline-errors": "0.10.1",
-    "waterline-sequel": "https://github.com/cjy37/waterline-sequel/tarball/0.5.x#0.5.8"
+    "waterline-sequel": "https://github.com/cjy37/waterline-sequel/archive/0.5.8.tar.gz"
   },
   "devDependencies": {
     "captains-log": "~0.11.11",

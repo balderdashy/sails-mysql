@@ -1,6 +1,6 @@
 {
   "name": "sails-mysql",
-  "version": "0.11.5",
+  "version": "0.11.8",
   "description": "MySQL adapter for Sails.js",
   "main": "lib/adapter.js",
   "scripts": {
@@ -9,7 +9,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git://github.com/balderdashy/sails-mysql.git"
+    "url": "git://github.com/cjy37/sails-mysql.git"
   },
   "keywords": [
     "mysql",
@@ -26,7 +26,7 @@
     "mysql": "2.10.2",
     "waterline-cursor": "0.0.6",
     "waterline-errors": "0.10.1",
-    "waterline-sequel": "0.5.7"
+    "waterline-sequel": "https://github.com/cjy37/waterline-sequel/archive/0.5.8.tar.gz"
   },
   "devDependencies": {
     "captains-log": "~0.11.11",

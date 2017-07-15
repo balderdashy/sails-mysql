@@ -86,7 +86,15 @@ module.exports = function preProcessRecord(options) {
       if (attrDef.type === 'ref' && _.has(record, columnName) && !_.isNull(record[columnName])) {
         var isBuffer = record[columnName] instanceof Buffer;
         if (!isBuffer) {
-          throw new Error('One of the values being set has an attribute type of `ref` but the value is not a Buffer. This adapter only accepts buffers for type `ref`. If you would like to store other types of data perhaps use type `json`.');
+          if(attrDef.meta && attrDef.meta.autoWrap === true){
+            try {
+              record[columnName] = Buffer.from(record[columnName]);
+            } catch (err){
+              throw new Error("meta.autoWrap was true for a 'ref' type of record, but Buffer.from(recordValue) has failed with the following message: "+err.message);
+            }
+          } else {
+            throw new Error('One of the values being set has an attribute type of `ref` but the value is not a Buffer. This adapter only accepts buffers for type `ref`. You can try adding meta: { autoWrap: true } to attribute definition to try to automatically wrap the value. If you would like to store other types of data perhaps use type `json`.');
+          }
         }
       }
     });

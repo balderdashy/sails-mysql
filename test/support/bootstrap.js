@@ -74,7 +74,14 @@ Support.Definition = {
     type: 'ref',
     columnName: 'fieldC',
     autoMigrations: {
-      columnType: 'text'
+      columnType: 'mediumblob'
+    }
+  },
+  fieldD: {
+    type: 'ref',
+    columnName: 'fieldD',
+    autoMigrations: {
+      columnType: 'datetime'
     }
   }
 };
@@ -183,13 +190,14 @@ Support.Seed = function seed(tableName, cb) {
     }
 
     var query = [
-      'INSERT INTO `' + tableName + '` (`fieldA`, `fieldB`) ',
-      'values (\'foo\', \'bar\'), (\'foo_2\', \'bAr_2\');'
+      'INSERT INTO `' + tableName + '` (`fieldA`, `fieldB`, `fieldC`, `fieldD`) ',
+      'values (\'foo\', \'bar\', null, null), (\'foo_2\', \'bAr_2\', $1, $2);'
     ].join('');
 
     MySQL.sendNativeQuery({
       connection: report.connection,
-      nativeQuery: query
+      nativeQuery: query,
+      valuesToEscape: [new Buffer([1,2,3]), new Date('2001-06-15 12:00:00')]
     }).exec(function seedCb(err) {
       if (err) {
         return cb(err);

@@ -88,6 +88,30 @@ describe('Unit Tests ::', function() {
       });
     });
 
+    it('should return `ref` type attributes unchanged', function(done) {
+      var query = {
+        using: 'test_find',
+        criteria: {
+          where: {
+            fieldB: 'bAr_2'
+          }
+        }
+      };
+
+      Adapter.find('test', query, function(err, results) {
+        if (err) {
+          return done(err);
+        }
+        var record = results[0];
+        assert(record.fieldC instanceof Buffer, 'fieldC was not a Buffer!');
+        assert(record.fieldD instanceof Date, 'fieldD was not a Date!');
+        assert.equal(record.fieldC.length, 3, 'fieldC was a Buffer, but not the right Buffer!  (contained: ' + require('util').inspect(record.fieldC) + ')');
+        assert.equal(record.fieldD.getFullYear(), '2001', 'fieldD was a Date, but not the right Date! (contained: ' + require('util').inspect(record.fieldD) + ')');
+
+        return done();
+      });
+    });
+
     // Look into the bowels of the PG Driver and ensure the Create function handles
     // it's connections properly.
     it('should release it\'s connection when completed', function(done) {

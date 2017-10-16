@@ -85,7 +85,7 @@ module.exports = require('machine').build({
 
     // Validate that the datastore isn't already initialized
     if (inputs.datastores[inputs.identity]) {
-      return exits.badConfiguration(new Error('Connection config is already registered.'));
+      return exits.badConfiguration(new Error('Datastore is already registered.'));
     }
 
     //  ╦  ╦╔═╗╦  ╦╔╦╗╔═╗╔╦╗╔═╗  ┌─┐┌─┐┌┐┌┌─┐┬┌─┐
@@ -97,11 +97,11 @@ module.exports = require('machine').build({
 
     // Validate that the connection has a host and database property
     if (!hasURL && !inputs.config.host) {
-      return exits.badConfiguration(new Error('Connection config is missing a host value.'));
+      return exits.badConfiguration(new Error('Datastore config is missing a host value.'));
     }
 
     if (!hasURL && !inputs.config.database) {
-      return exits.badConfiguration(new Error('Connection config is missing a database value.'));
+      return exits.badConfiguration(new Error('Datastore config is missing a value for the database name.'));
     }
 
     // Loop through every model assigned to the datastore we're registering,

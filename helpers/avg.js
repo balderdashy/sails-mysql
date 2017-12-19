@@ -44,8 +44,7 @@ module.exports = require('machine').build({
 
     success: {
       description: 'The results of the avg query.',
-      outputVariableName: 'records',
-      example: '==='
+      outputType: 'ref'
     },
 
     invalidDatastore: {

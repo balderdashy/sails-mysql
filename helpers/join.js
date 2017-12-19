@@ -43,7 +43,7 @@ module.exports = require('machine').build({
 
     success: {
       description: 'The query was run successfully.',
-      example: '==='
+      outputType: 'ref'
     },
 
     badConnection: {

@@ -45,7 +45,7 @@ module.exports = require('machine').build({
     success: {
       description: 'The record was successfully inserted.',
       outputVariableName: 'record',
-      example: '==='
+      outputType: 'ref'
     },
 
     invalidDatastore: {
@@ -59,7 +59,7 @@ module.exports = require('machine').build({
 
     notUnique: {
       friendlyName: 'Not Unique',
-      example: '==='
+      outputType: 'ref'
     }
 
   },

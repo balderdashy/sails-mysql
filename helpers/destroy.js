@@ -44,8 +44,7 @@ module.exports = require('machine').build({
 
     success: {
       description: 'The results of the destroy query.',
-      outputVariableName: 'records',
-      example: '==='
+      outputType: 'ref'
     },
 
     invalidDatastore: {

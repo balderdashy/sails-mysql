@@ -26,7 +26,7 @@ module.exports = function releaseConnection(connection, leased, cb) {
 
   MySQL.releaseConnection({
     connection: connection
-  }).exec({
+  }).switch({
     error: function error(err) {
       return cb(new Error('There was an error releasing the connection back into the pool.' + err.stack));
     },

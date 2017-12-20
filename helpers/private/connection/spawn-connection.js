@@ -26,7 +26,7 @@ module.exports = function spawnConnection(datastore, cb) {
     manager: datastore.manager,
     meta: datastore.config
   })
-  .exec({
+  .switch({
     error: function error(err) {
       return cb(err);
     },

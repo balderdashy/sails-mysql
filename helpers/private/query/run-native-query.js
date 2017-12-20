@@ -24,7 +24,7 @@ module.exports = function runNativeQuery(connection, query, valuesToEscape, meta
     valuesToEscape: valuesToEscape,
     meta: meta
   })
-  .exec({
+  .switch({
     error: function error(err) {
       return cb(err);
     },

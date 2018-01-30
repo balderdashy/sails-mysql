@@ -7,7 +7,7 @@
     "test": "node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && node test/adapter/integration/runner",
     "fasttest": "node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && node test/adapter/integration/runner",
     "pretest": "nodever=`node -e \"console.log('\\`node -v\\`'[1]);\"` && if [ $nodever != \"0\" ]; then npm run lint; fi",
-    "lint": "eslint lib helpers test",
+    "lint": "node ./node_modules/eslint/bin/eslint . --max-warnings=0 --ignore-pattern 'test/'",
     "docker": "docker-compose run adapter bash",
     "benchmark": "node ./node_modules/mocha/bin/mocha test/benchmarks --recursive"
   },
@@ -33,7 +33,7 @@
   },
   "devDependencies": {
     "benchmark": "2.1.1",
-    "eslint": "3.5.0",
+    "eslint": "4.11.0",
     "mocha": "3.0.2",
     "waterline-adapter-tests": "^1.0.0-6"
   },

@@ -177,7 +177,7 @@ module.exports = function insertRecord(options, cb) {
       var compiledFetchQuery;
       try {
         compiledFetchQuery = compileStatement(fetchStatement);
-      } catch (e) {
+      } catch (err) {
         // If the statement could not be compiled, return an error.
         return cb(err);
       }

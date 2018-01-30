@@ -191,7 +191,7 @@ module.exports = function createEach(options, cb) {
     var compiledQuery;
     try {
       compiledQuery = compileStatement(fetchStatement);
-    } catch (e) {
+    } catch (err) {
       // If the statement could not be compiled, return an error.
       return cb(err);
     }

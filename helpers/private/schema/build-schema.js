@@ -43,8 +43,6 @@ module.exports = function buildSchema(definition) {
 
       // Sensible MySQL-specific defaults for common things folks might try to use.
       // (FUTURE: log warnings suggesting proper usage when any of these synonyms are invoked)
-      case 'json':
-        return 'LONGTEXT';
       case 'varchar':
         return 'VARCHAR(255)';
 

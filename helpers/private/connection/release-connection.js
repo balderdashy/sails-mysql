@@ -34,7 +34,12 @@ module.exports = function releaseConnection(connection, leased, cb) {
       return cb(new Error('Bad connection when trying to release an active connection.'));
     },
     success: function success() {
-      return cb();
+      try{
+        return cb();
+      } catch(e){
+        console.log("lolol->",e)
+      }
+
     }
   });
 };

@@ -37,9 +37,8 @@ module.exports = function releaseConnection(connection, leased, cb) {
       try{
         return cb();
       } catch(e){
-        console.log("lolol->",e)
+        console.log(e)
       }
-
     }
   });
 };

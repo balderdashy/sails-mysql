@@ -1,38 +1,54 @@
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+#   ╔╦╗╦═╗╔═╗╦  ╦╦╔═╗ ┬ ┬┌┬┐┬                           #
+#    ║ ╠╦╝╠═╣╚╗╔╝║╚═╗ └┬┘││││                           #
+#  o ╩ ╩╚═╩ ╩ ╚╝ ╩╚═╝o ┴ ┴ ┴┴─┘                         #
+#                                                       #
+# This file configures Travis CI.                       #
+# (i.e. how we run the tests... mainly)                 #
+#                                                       #
+# https://docs.travis-ci.com/user/customizing-the-build #
+# # # # # # # # # # # # # # # # # # # # # # # # # # # # #
+
 language: node_js
+
 node_js:
-  - "0.10"
-  - "0.12"
-  - "4"
-  - "5"
   - "node"
+  - "8"
+  - "6"
+  - "4"
+  - "0.12"
+  - "0.10"
 
 matrix:
     include:
         - addons:
              mariadb: 5.5
-          node_js: '5'
+          node_js: '8'
         - addons:
              mariadb: 10.0
-          node_js: '5'
+          node_js: '8'
         - addons:
              mariadb: 10.1
-          node_js: '5'
+          node_js: '8'
         - addons:
              mariadb: 5.5
-          node_js: '4'
+          node_js: '6'
         - addons:
              mariadb: 10.0
-          node_js: '4'
+          node_js: '6'
         - addons:
              mariadb: 10.1
-          node_js: '4'
+          node_js: '6'
+branches:
+  only:
+    - master
 
 services: mysql
 sudo: false
 before_script:
-  - mysql -e 'create database sails_mysql;'
+  - mysql -e 'create database adapter_tests;'
 env:
-  - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=root WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=sails_mysql
+  - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=root WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter_tests
 notifications:
   email:
-    - particlebanana@gmail.com
+    - ci@sailsjs.com

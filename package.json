@@ -4,8 +4,8 @@
   "description": "MySQL adapter for Sails.js",
   "main": "lib/adapter.js",
   "scripts": {
-    "test": "node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && node test/adapter/integration/runner",
-    "fasttest": "node ./node_modules/mocha/bin/mocha test/adapter/unit --recursive && node test/adapter/integration/runner",
+    "test": "node ./node_modules/mocha/bin/mocha test/adapter/unit --timeout 10000 --recursive && node test/adapter/integration/runner",
+    "fasttest": "node ./node_modules/mocha/bin/mocha test/adapter/unit --timeout 10000 --recursive && node test/adapter/integration/runner",
     "pretest": "nodever=`node -e \"console.log('\\`node -v\\`'[1]);\"` && if [ $nodever != \"0\" ]; then npm run lint; fi",
     "lint": "node ./node_modules/eslint/bin/eslint . --max-warnings=0 --ignore-pattern 'test/'",
     "docker": "docker-compose run adapter bash",

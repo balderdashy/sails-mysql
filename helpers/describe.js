@@ -148,6 +148,11 @@ module.exports = require('machine').build({
             if (column.Key === 'UNI') {
               schema[column.Field].unique = true;
             }
+            
+            // Check for nullable
+            if (column.Null === 'NO) {
+              schema[column.Field].required = true
+            }
 
             // If also an integer set auto increment attribute
             if (column.Type === 'int(11)') {

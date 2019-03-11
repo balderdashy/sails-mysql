@@ -150,7 +150,7 @@ module.exports = require('machine').build({
             }
             
             // Check for nullable
-            if (column.Null === 'NO) {
+            if (column.Null === 'NO') {
               schema[column.Field].required = true
             }
 

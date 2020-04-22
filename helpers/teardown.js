@@ -57,7 +57,7 @@ module.exports = require('machine').build({
 
     var datastore = inputs.datastores[inputs.identity];
     if (!datastore) {
-      return exits.error(new Error('Invalid data store identity. No data store exist with that identity.'));
+      return exits.error(new Error('Invalid data store identity. No data store exists with that identity.'));
     }
 
 

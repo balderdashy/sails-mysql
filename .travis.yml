@@ -13,32 +13,11 @@ language: node_js
 
 node_js:
   - "node"
-  - "8"
-  - "6"
-  - "4"
-  - "0.12"
-  - "0.10"
+  - "14"
+  - "12"
+  - "10"
 
-matrix:
-    include:
-        - addons:
-             mariadb: 5.5
-          node_js: '8'
-        - addons:
-             mariadb: 10.0
-          node_js: '8'
-        - addons:
-             mariadb: 10.1
-          node_js: '8'
-        - addons:
-             mariadb: 5.5
-          node_js: '6'
-        - addons:
-             mariadb: 10.0
-          node_js: '6'
-        - addons:
-             mariadb: 10.1
-          node_js: '6'
+
 branches:
   only:
     - master

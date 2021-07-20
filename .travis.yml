@@ -22,22 +22,22 @@ node_js:
 matrix:
     include:
         - addons:
-             mariadb: 5.5.68
+             mariadb: 5.5
           node_js: '8'
         - addons:
-             mariadb: 10.0.38
+             mariadb: 10.0
           node_js: '8'
         - addons:
-             mariadb: 10.1.48
+             mariadb: 10.1
           node_js: '8'
         - addons:
-             mariadb: 5.5.58
+             mariadb: 5.5
           node_js: '6'
         - addons:
-             mariadb: 10.0.38
+             mariadb: 10.0
           node_js: '6'
         - addons:
-             mariadb: 10.1.48
+             mariadb: 10.1
           node_js: '6'
 branches:
   only:

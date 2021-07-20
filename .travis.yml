@@ -25,19 +25,19 @@ matrix:
              mariadb: 5.5
           node_js: '8'
         - addons:
-             mariadb: 10.0
+             mariadb: 10.3
           node_js: '8'
         - addons:
-             mariadb: 10.1
+             mariadb: 10.3
           node_js: '8'
         - addons:
              mariadb: 5.5
           node_js: '6'
         - addons:
-             mariadb: 10.0
+             mariadb: 10.3
           node_js: '6'
         - addons:
-             mariadb: 10.1
+             mariadb: 10.3
           node_js: '6'
 branches:
   only:

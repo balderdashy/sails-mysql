@@ -12,10 +12,9 @@
 language: node_js
 
 node_js:
-  - "16"
-  - "14"
   - "12"
-  - "10"
+  - "14"
+  - "16"
 
 
 branches:
@@ -26,6 +25,9 @@ services: mysql
 sudo: false
 before_script:
   - mysql -e 'create database adapter_tests;'
+
+before_install:
+  - npm i -g npm@8.11.0
 env:
   - WATERLINE_ADAPTER_TESTS_HOST=127.0.0.1 WATERLINE_ADAPTER_TESTS_USER=root WATERLINE_ADAPTER_TESTS_PASSWORD='' WATERLINE_ADAPTER_TESTS_DATABASE=adapter_tests
 notifications:

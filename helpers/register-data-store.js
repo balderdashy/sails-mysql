@@ -136,7 +136,12 @@ module.exports = require('machine').build({
       url += inputs.config.host + ':' + port + '/' + inputs.config.database;
       inputs.config.url = url;
     }
-
+    
+    try {
+      new URL(inputs.config.url);
+    } catch (e) {
+      return exits.error(new Error('Invalid connection url: remember to use encodeURIComponent() encode special characters in your connection url'));
+    }
 
     //  ╔═╗╦═╗╔═╗╔═╗╔╦╗╔═╗  ┌┬┐┌─┐┌┐┌┌─┐┌─┐┌─┐┬─┐
     //  ║  ╠╦╝║╣ ╠═╣ ║ ║╣   │││├─┤│││├─┤│ ┬├┤ ├┬┘
